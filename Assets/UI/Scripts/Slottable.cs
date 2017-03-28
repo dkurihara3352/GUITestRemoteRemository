@@ -119,7 +119,7 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		this.m_axisScroller = FindInParents<AxisScroller>(gameObject);
 		this.m_canvas = FindInParents<Canvas>(gameObject);
 	}
-	public void Initialize(SlotGroup slotGroup, ItemInstance itemInstance, InventoryItem item, int quantity){
+	public void Initialize(SlotGroup slotGroup, ItemInstance itemInstance, InventoryItem item, int quantity, SlotGroupManager sgm, EventSystem es){
 		
 		this.m_OrigSG = slotGroup;
 		this.m_Item = item;
@@ -128,8 +128,8 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		this.m_image.sprite = m_Item.itemSprite;
 
 		
-		this.m_slotGroupManager = FindObjectOfType<SlotGroupManager>();
-		this.m_eventSystem = FindObjectOfType<EventSystem>();
+		this.m_slotGroupManager = sgm;
+		this.m_eventSystem = es;
 		this.m_quantText = transform.GetChild(0).GetComponent<Text>();
 		this.m_rectTrans = GetComponent<RectTransform>();
 		this.m_layoutElement = GetComponent<LayoutElement>();

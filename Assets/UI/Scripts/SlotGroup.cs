@@ -169,7 +169,7 @@ public class SlotGroup : MonoBehaviour {
 				}
 				if(!found){
 					Slottable newSlottable = Instantiate(slottablePrefab, Vector3.zero, Quaternion.identity);
-					newSlottable.Initialize(this, inventory.entries[i].itemInstance, inventory.entries[i].itemInstance.m_item, inventory.entries[i].quantity);
+					newSlottable.Initialize(this, inventory.entries[i].itemInstance, inventory.entries[i].itemInstance.m_item, inventory.entries[i].quantity, m_slotGroupManager, m_eventSystem);
 					newSlottable.Attach(m_tempSlots[i].slotRect);
 					newSlottable.InitHierarchyDependents();
 					newSlottable.GetComponent<Image>().enabled = false;
@@ -307,8 +307,11 @@ public class SlotGroup : MonoBehaviour {
 	void Start(){
 		
 	}
-
-	public void InitSlots(){
+	SlotGroupManager m_slotGroupManager;
+	EventSystem m_eventSystem;
+	public void InitSlots(SlotGroupManager sgm , EventSystem es){
+		m_slotGroupManager = sgm;
+		m_eventSystem  = es;
 		/*	if isExpandable as many newSlotRects as needed needs to be created to accomodate slottables.
 			populate the list with pairs of newly created slottables and slotRects
 			children all the slottables to slotRects
@@ -324,7 +327,7 @@ public class SlotGroup : MonoBehaviour {
 
 				if((m_slotGroupType != SlotGroupType.Pool && inventory.entries[i].quantity > 0)|| m_slotGroupType == SlotGroupType.Pool){
 					Slottable newSlottable = (Slottable)Instantiate(slottablePrefab, Vector3.zero, Quaternion.identity);
-					newSlottable.Initialize(this, inventory.entries[i].itemInstance, inventory.entries[i].itemInstance.m_item, inventory.entries[i].quantity);
+					newSlottable.Initialize(this, inventory.entries[i].itemInstance, inventory.entries[i].itemInstance.m_item, inventory.entries[i].quantity, m_slotGroupManager, m_eventSystem);
 					slottableTempList.Add(newSlottable);
 				}
 			// }

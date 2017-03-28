@@ -81,11 +81,11 @@ public class SlotGroupManager : MonoBehaviour {
 		}
 		return null;
 	}
-
+	public EventSystem m_eventSystem;
 	void InitSlotGroups(){
 		for (int i = 0; i < m_slotGroups.Count; i++)
 		{
-			m_slotGroups[i].InitSlots();
+			m_slotGroups[i].InitSlots(this, m_eventSystem);
 			m_slotGroups[i].Initialize();
 		}
 	}
