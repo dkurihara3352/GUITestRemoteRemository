@@ -15,17 +15,21 @@ public class SlotGroup : MonoBehaviour {
 	public Slottable slottablePrefab;
 	public Transform panel;
 
-	[SerializeField]
-	public List<Slot> m_slots;
-	[SerializeField]
-	public List<Slot> m_tempSlots;
+	List<Slot> m_slots;
+	List<Slot> m_tempSlots;
 	
 	public SlotGroupType m_slotGroupType;
 	public RectTransform m_dropZoneRect;
 	public bool isExpandable;
 	public GameObject m_slotPrefab;
 	public bool isSubtractable;
-	public bool m_isActiveForSelection = false;
+	
+	bool m_isActiveForSelection = false;
+	public bool m_IsActiveForSelection{
+		get{
+			return m_isActiveForSelection;
+		}
+	}
 
 	
 	public Slot this[int index]{
@@ -102,7 +106,7 @@ public class SlotGroup : MonoBehaviour {
 		{
 			if(m_tempSlots[i].slottable != null){
 
-				DebugUtility.PrintPurple(this.gameObject.name + "'s m_tempSlots[" + i.ToString() + "].slottable.m_itemInstance.name: " + m_tempSlots[i].slottable.m_itemInstance.name.ToString());
+				DebugUtility.PrintPurple(this.gameObject.name + "'s m_tempSlots[" + i.ToString() + "].slottable.m_ItemInstance.name: " + m_tempSlots[i].slottable.m_ItemInstance.name.ToString());
 			}else{
 				DebugUtility.PrintPurple(this.gameObject.name + "'s m_tempSlots[" + i.ToString() + "].slottable is null");
 				
@@ -160,7 +164,7 @@ public class SlotGroup : MonoBehaviour {
 				{
 					if(m_slots[j].slottable != null){
 
-						if(m_slots[j].slottable.m_itemInstance ==inventory.entries[i].itemInstance){
+						if(m_slots[j].slottable.m_ItemInstance ==inventory.entries[i].itemInstance){
 							found = true;
 							m_tempSlots[i].slottable = m_slots[j].slottable;
 							m_tempSlots[i].slottable.m_Quantity = inventory.entries[i].quantity;
@@ -248,7 +252,7 @@ public class SlotGroup : MonoBehaviour {
 					found = true;
 				}
 			}else{
-				if(inventory.entries[i].itemInstance == slottable.m_itemInstance){
+				if(inventory.entries[i].itemInstance == slottable.m_ItemInstance){
 					inventory.entries[i].quantity += quantity;
 					found = true;
 				}
@@ -258,7 +262,7 @@ public class SlotGroup : MonoBehaviour {
 
 		if(!found){
 			InventoryItemEntry newEntry = new InventoryItemEntry();
-			newEntry.itemInstance = slottable.m_itemInstance;
+			newEntry.itemInstance = slottable.m_ItemInstance;
 			newEntry.quantity = quantity;
 			inventory.entries.Add(newEntry);
 		}
@@ -268,7 +272,7 @@ public class SlotGroup : MonoBehaviour {
 	public void RemoveItemFromData(Slottable slottable, int quantity){
 		for (int i = 0; i < inventory.entries.Count; i++)
 		{
-			if(inventory.entries[i].itemInstance == slottable.m_itemInstance)
+			if(inventory.entries[i].itemInstance == slottable.m_ItemInstance)
 				inventory.entries[i].quantity -= quantity;
 		}
 	}
@@ -280,7 +284,7 @@ public class SlotGroup : MonoBehaviour {
 		{
 			if(this[i].slottable != null){
 
-				if(this[i].slottable.m_itemInstance == slottable.m_itemInstance)
+				if(this[i].slottable.m_ItemInstance == slottable.m_ItemInstance)
 				result = this[i].slotRect;
 			}
 		}
@@ -294,7 +298,7 @@ public class SlotGroup : MonoBehaviour {
 		{
 			if(m_tempSlots[i].slottable != null){
 
-				if(m_tempSlots[i].slottable.m_itemInstance == slottable.m_itemInstance)
+				if(m_tempSlots[i].slottable.m_ItemInstance == slottable.m_ItemInstance)
 				result = m_tempSlots[i].slotRect;
 			}
 		}
@@ -502,7 +506,7 @@ public class SlotGroup : MonoBehaviour {
 		for (int i = 0; i < SlotCount; i++)
 		{
 			if(this[i].slottable != null){
-				if(this[i].slottable.m_isActiveForSelection){
+				if(this[i].slottable.m_IsActiveForSelection){
 					if(this[i].slottable.gameObject == eventData.pointerEnter || this[i].slottable.ChildIsPointerEnter(eventData)){
 						
 						sbUnderCursor = this[i].slottable;

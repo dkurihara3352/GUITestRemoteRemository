@@ -11,8 +11,11 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 {
 
 
+	ItemInstance m_itemInstance;
+	public ItemInstance m_ItemInstance{
+		get{return m_itemInstance;}
+	}
 	InventoryItem m_item;
-	public ItemInstance m_itemInstance;
 	public InventoryItem m_Item{
 		get{return m_item;}
 		set{m_item = value;}
@@ -24,24 +27,21 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 			m_origSG = value;
 		}
 	}
-	
-	GameObject newObj;
-
-
 
 	GameObject m_draggedIcon;
 	
 	RectTransform m_draggedPlane;
 	
 	bool m_isPickupTimerOn = false;
-	public RectTransform m_rectTrans;
+	
+	RectTransform m_rectTrans;
 	Image m_image;
 
 	
 	float m_pickupTimer = 0f;
 	float m_pickupTime = .3f;
 	AxisScroller m_axisScroller;
-	public Text m_quantText;
+	Text m_quantText;
 	Text m_pickedQuantText;
 	EventSystem m_eventSystem;
 	Color m_emptyColor = new Color(.7f, .7f, .7f);
@@ -106,11 +106,11 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 	Color m_initCol;
 	bool m_isTouchedInside = false;
 	bool m_isTouchedOutside = false;
-	bool m_isMovingToSlot = false;
+	// bool m_isMovingToSlot = false;
 	
-	public bool m_isOnSlot = false;
-	public Slot m_hoverSlot = null;
-	public bool m_isPickedUp = false;
+	// public bool m_isOnSlot = false;
+	// public Slot m_hoverSlot = null;
+	bool m_isPickedUp = false;
 	LayoutElement m_layoutElement;
 	Canvas m_canvas;
 	SlotGroupManager m_slotGroupManager;
@@ -280,7 +280,8 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		}else{
 			pickedText = null;
 		}
-		m_slotGroupManager.draggedIcon = draggedIcon;
+		/*m_slotGroupManager.draggedIcon = draggedIcon;*/
+		m_slotGroupManager.SetDraggedIcon(draggedIcon);
 		string str;
 		if(m_draggedIcon == null)
 			str = "null";
@@ -715,8 +716,8 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 	}
 
 	
-	public bool m_isMovable = false;
-	public bool m_isDoneMoving = true;
+	bool m_isMovable = false;
+	bool m_isDoneMoving = true;
 	
 	public AnimationCurve m_moveCurve;
 	public float m_travelTime = .5f;
@@ -852,7 +853,12 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		}
 	}
 
-	public bool m_isActiveForSelection = true;
+	bool m_isActiveForSelection = true;
+	public bool m_IsActiveForSelection{
+		get{
+			return m_isActiveForSelection;
+		}
+	}
 	Color m_deactiveColor;
 
 	public void SetActiveForSelectionState(bool active){

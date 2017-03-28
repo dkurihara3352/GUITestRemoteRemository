@@ -1,10 +1,11 @@
-﻿using System.Collections;
+﻿
 using System.Collections.Generic;
 using UnityEngine;
 using InventorySystem;
 using UnityEngine.EventSystems;
 using System.Linq;
 using MyUtility;
+
 public class SlotGroupManager : MonoBehaviour {
 
 	public List<SlotGroup> m_slotGroups;
@@ -158,8 +159,9 @@ public class SlotGroupManager : MonoBehaviour {
 	SlotGroup m_sgUnderCursor;
 	public bool m_displayGUI = true;
 	public GUISkin m_guiSkin;
-	public GameObject draggedIcon;
+	GameObject draggedIcon;
 	Camera cam;
+	
 	void OnGUI(){
 		if(m_displayGUI){
 			GUI.skin = m_guiSkin;
@@ -207,25 +209,24 @@ public class SlotGroupManager : MonoBehaviour {
 		}
 	}
 
+	public void SetDraggedIcon(GameObject icon){
+		this.draggedIcon = icon;
+	}
+
 	public void GetSGandSlottableUnderCursor(ref Slottable sbUnderCursor, ref SlotGroup sgUnderCursor, PointerEventData eventData){
-		// sgUnderCursor = null;
-		// sbUnderCursor = null;
+		
 		if(sgUnderCursor != null && !RectTransformUtility.RectangleContainsScreenPoint(sgUnderCursor.m_dropZoneRect, eventData.position)){
 			sgUnderCursor.SetHoverState(false);
 			sgUnderCursor = null;
 			m_sgUnderCursor = null;
 		}
-		// if(sbUnderCursor != null && !RectTransformUtility.RectangleContainsScreenPoint(sbUnderCursor.m_rectTrans, eventData.position)){
-		// 	sbUnderCursor = null;
-		// 	sbUnderCursor
-		// 	m_sgUnderCursor = null;
-		// }
+		
 		for (int i = 0; i < m_slotGroups.Count; i++)
 		{
-			if(m_slotGroups[i].m_isActiveForSelection){
+			if(m_slotGroups[i].m_IsActiveForSelection){
 				if(RectTransformUtility.RectangleContainsScreenPoint(m_slotGroups[i].m_dropZoneRect, eventData.position)){
 
-					if(sgUnderCursor == m_slotGroups[i] /*&& sgUnderCursor != null*/){
+					if(sgUnderCursor == m_slotGroups[i]){
 						//do nothing
 					}else{
 						if(sgUnderCursor != null)
