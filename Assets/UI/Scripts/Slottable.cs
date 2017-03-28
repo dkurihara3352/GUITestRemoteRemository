@@ -245,13 +245,13 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 
 
 	public void OnNonEventDrop(PointerEventData eventData){
-		// StartCoroutine(ChangeColor(Color.cyan, Color.white));
+
 		SetHoverState(false);
 
 	}
 
 	GameObject CreateAndSetupDraggedIcon(Canvas canvas, ref Text pickedText){
-		// DebugUtility.PrintGreen(this.m_itemInstance.name + "'s CreateAndSetupDraggedIcon is entered");
+		
 		GameObject draggedIcon = new GameObject("draggedIcon");
 		draggedIcon.transform.SetParent(canvas.transform, false);
 		draggedIcon.transform.SetAsLastSibling();
@@ -286,7 +286,7 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 			str = "null";
 		else
 			str = m_draggedIcon.gameObject.name;
-		// DebugUtility.PrintGreen(this.m_itemInstance.name + "'s CreateAndSetupDraggedIcon is left with m_draggedIcon: " + str);
+		
 		
 		
 		return draggedIcon;
@@ -297,8 +297,8 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		
 		if(eventData.pointerDrag != null){
 			AxisScroller axisScroller = eventData.pointerDrag.GetComponent<AxisScroller>();
-			if(axisScroller == null) DebugUtility.PrintPink("axisScroller that is being drag is not present at pickup, because pointerDrag is " + eventData.pointerDrag.name);
-			else{
+			if(axisScroller != null)
+			{
 				axisScroller.OnEndDrag(eventData);
 				axisScroller.StopMovement();
 			}
@@ -511,19 +511,9 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 											added = true;
 										}
 									}
-									// else{
-									// 	/* this is not stackable 
-									// 	*/
-									// 	StartCoroutine(Revert(eventData));
-									// 	return;
-									// }
+									
 								}
-								// else{
-								// 	/*	no same item in the sg
-								// 	*/
-								// 	StartCoroutine(Revert(eventData));
-								// 	return;
-								// }
+								
 							}
 						}
 
@@ -665,12 +655,11 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 				}
 		
 				eventData.pointerDrag = this.gameObject;
-				print("comes as far as here");
 				
 				m_isWFRDone = true;
 				m_isResetTimerOn = false;
 				m_resetTimer = 0f;
-				// m_slotGroupManager.SetActiveStateAll(true);
+				
 				yield break;
 			}
 
@@ -777,8 +766,6 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		
 		/*	gotta move remained childrened to the slotRect
 		*/
-
-		// Vector2 initPosSS = m_rectTrans.position;
 		
 		Detach(eventData);
 		RectTransform panelRect = (RectTransform)m_OrigSG.panel;
@@ -789,14 +776,7 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		targetPos.y += (panelRect.pivot.y - .5f) * panelRect.rect.height;
 
 		Vector2 initPos = m_rectTrans.anchoredPosition;
-		// RectTransform thisSlotRect = m_OrigSG.GetSlotRect(this);
-				
-		// Vector2 targetPos;
-		
-		// RectTransformUtility.ScreenPointToLocalPointInRectangle(thisSlotRect, targetSlot.position, eventData.pressEventCamera, out targetPos);
 
-		DebugUtility.PrintBlue(this.m_itemInstance.name + "'s MWSG: targetSlot.position: " + targetSlot.position.ToString() + ", targetPos: " + targetPos.ToString() + ", m_rectTrans.anchPos: " + m_rectTrans.anchoredPosition.ToString());
-		
 		yield return StartCoroutine(Move(this.m_rectTrans, initPos, /*targetPos*/targetPos, decRate));
 		Attach(targetSlot);
 	}
@@ -807,24 +787,16 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		*/
 		RectTransform canvasRect = m_canvas.GetComponent<RectTransform>();
 		RectTransform origSlot = m_OrigSG.GetSlotRect(this);
-		// Vector2 origSlotPosScreenSpace = RectTransformUtility.WorldToScreenPoint(null, origSlot.position);
+		
 		Vector2 targetPos;
 		RectTransformUtility.ScreenPointToLocalPointInRectangle
 		(canvasRect, origSlot.position, eventData.pressEventCamera, out targetPos);
 
-		// Vector2 targetPos = new Vector2(posOnCanvas.x - canvasRect.rect.width * .5f, posOnCanvas.y - canvasRect.rect.height * .5f);
-		
 		RectTransform iconRT = m_draggedIcon.GetComponent<RectTransform>();
 
 		Vector2 iconPos = iconRT.anchoredPosition;
-		// Vector2 iconPosScreenSpace = RectTransformUtility.WorldToScreenPoint(null, iconRT.position);
-
-
-
 		Vector2 origPos = m_rectTrans.anchoredPosition;
-		
-		
-		// DebugUtility.PrintBlue(this.m_itemInstance.name + "'s reverted: origSlotWorPos: " + origSlot.position.ToString() + ", origScreenPos: " + origSlotPosScreenSpace.ToString() + ", targetPos: " + targetPos.ToString());
+
 		yield return StartCoroutine(Move(iconRT, iconPos,/*origPos*/targetPos, .5f));
 
 		DestroyDraggedIcon();
@@ -840,15 +812,15 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		
 		/*	if there's no dragged icon obj create it here
 		*/
-		// Transform iconTrans = m_draggedIcon.transform;
+		
 		RectTransform iconRT = m_draggedIcon.GetComponent<RectTransform>();
-		// Vector2 curPos = new Vector2(iconTrans.position.x, iconTrans.position.y);
+		
 		Vector2 curPos = iconRT.anchoredPosition;
 
 		RectTransform canvasRect = m_canvas.GetComponent<RectTransform>();
-		// Vector2 newSlotPosScreenSpace = RectTransformUtility.WorldToScreenPoint(null, slot.position);
+		
 		Vector3 newSlotPosOnCanvas = Vector3.zero;
-		RectTransformUtility.ScreenPointToWorldPointInRectangle(canvasRect, /*newSlotPosScreenSpace*/slot.position, eventData.pressEventCamera, out newSlotPosOnCanvas);
+		RectTransformUtility.ScreenPointToWorldPointInRectangle(canvasRect, slot.position, eventData.pressEventCamera, out newSlotPosOnCanvas);
 
 		Vector2 newPos = new Vector2(newSlotPosOnCanvas.x - canvasRect.rect.width * .5f, newSlotPosOnCanvas.y - canvasRect.rect.height * .5f);
 
@@ -856,18 +828,13 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		yield return StartCoroutine(Move(iconRT, curPos, newPos, .5f));
 		
 		DestroyDraggedIcon();
-		// m_PickAmount = 0;
+		
 		m_pickAmount = 0;
-		// Attach(slot);
-		/*	call slotGroup.CompleteSlotsUpdate()
-			Destroy Self
-		*/
 
 		slotGroup.CompleteSlotsUpdate();
 		m_slotGroupManager.SetActiveStateAll(true);
 		if(this.m_OrigSG.m_slotGroupType != SlotGroupType.Pool)
 		Destroy(this.gameObject);
-		// DebugUtility.PrintBlue(this.m_itemInstance.name + "'s MoveToSlot's end is reached ");
 	}
 	Color m_equippedColor;
 	
@@ -914,8 +881,7 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		Vector2 prevPosSS = prevPar.position;
 		Vector2 newPosOnPanel;
 		RectTransformUtility.ScreenPointToLocalPointInRectangle(panelRect, prevPosSS, eventData.pressEventCamera, out newPosOnPanel);
-		/*	m_OrigSG.panel
-		*/
+		
 		newPosOnPanel.x += (panelRect.pivot.x - .5f) * panelRect.rect.width;
 		newPosOnPanel.y += (panelRect.pivot.y - .5f) *panelRect.rect.height;
 
@@ -923,7 +889,7 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		transform.SetAsLastSibling();
 		m_rectTrans.anchorMax = new Vector2(.5f, .5f);
 		m_rectTrans.anchorMin = new Vector2(.5f, .5f);
-		// m_rectTrans.anchoredPosition = m_OrigSG.GetSlotRect(this).anchoredPosition;
+		
 		m_rectTrans.anchoredPosition = /*prevPar.anchoredPosition*/newPosOnPanel;
 		m_rectTrans.sizeDelta = new Vector2(80f, 80f);
 		

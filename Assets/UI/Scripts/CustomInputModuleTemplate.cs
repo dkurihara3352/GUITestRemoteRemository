@@ -331,7 +331,7 @@ namespace UnityEngine.EventSystems
 					// 	pointerEvent.eligibleForClick = false;
 					// 	pointerEvent.rawPointerPress = null;
 					// }
-					print("pointerDrag is " + pointerEvent.pointerDrag.gameObject.name);
+
 					if(!ExecuteEvents.CanHandleEvent<IHorizontalDragHandler>(pointerEvent.pointerDrag) && !ExecuteEvents.CanHandleEvent<IVerticalDragHandler>(pointerEvent.pointerDrag) && ExecuteEvents.CanHandleEvent<IDragHandler>(pointerEvent.pointerDrag)){
 						ExecuteEvents.Execute<IDragHandler>(pointerEvent.pointerDrag, pointerEvent, ExecuteEvents.dragHandler);
 					}else{
@@ -413,17 +413,6 @@ namespace UnityEngine.EventSystems
 		{
 			return !useDragThreshold || (pressPos - currentPos).sqrMagnitude >= threshold * threshold;
 		}
-
-		/*	protected void ProcessDelayedPress(CustomEventData eventData){
-				//if pointerPressed remains the same && eventData.eligibleForDelayedPress , increment timer
-				//if timer expires
-					//call OnDelayedPointerDown
-					//make sure this does not called again until new touch
-						//timer is reset
-						//eventData.eligibleForDelayedPress = false
-							//eligibleForDelayedPress is reset to true when a new touch is detected
-			}
-		*/
 
 		protected void ProcessTouchPress(PointerEventData pointerEvent, bool pressed, bool released)
 		{/*	called in ProcessTouchEvents
