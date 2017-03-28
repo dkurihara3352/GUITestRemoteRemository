@@ -145,13 +145,7 @@ public class SlotGroup : MonoBehaviour {
 					newSlot.slotRect = Instantiate(m_slotPrefab, Vector3.zero, Quaternion.identity).GetComponent<RectTransform>();
 					newSlot.slotRect.SetParent(panel);
 					newSlot.slotRect.SetAsLastSibling();
-					// LayoutGroup panelLayoutGroup = panel.GetComponent<LayoutGroup>();
-					// if(panelLayoutGroup != null){
-					// 	panelLayoutGroup.CalculateLayoutInputHorizontal();
-					// 	panelLayoutGroup.CalculateLayoutInputVertical();
-					// 	panelLayoutGroup.SetLayoutHorizontal();
-					// 	panelLayoutGroup.SetLayoutVertical();
-					// }
+					
 					m_tempSlots.Add(newSlot);
 				}
 			}
@@ -400,8 +394,7 @@ public class SlotGroup : MonoBehaviour {
 			else
 				newSlot.slottable = orderedTemp[i];
 			newSlot.slotRect = slotRTTempList[i];
-			// newSlot.slottable.m_rectTrans.anchoredPosition = newSlot.slotRect.anchoredPosition;
-			// newSlot.slottable.transform.SetParent(newSlot.slotRect);
+			
 			if(newSlot.slottable != null){
 				newSlot.slottable.Attach(newSlot.slotRect);
 				newSlot.slottable.InitHierarchyDependents();
