@@ -194,6 +194,10 @@ public class SlotGroup : MonoBehaviour {
 				if not pool the zero quantity slottables are omitted
 			*/
 			
+			/*	if this sg has m_axisScroller
+					a) move all the slotRects in m_tempSlots to the new focused position
+					b) call the axis scroller to smooth focus to the position. Time their movement
+			*/
 			
 		/*	Transit part
 		*/

@@ -106,14 +106,12 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 	Color m_initCol;
 	bool m_isTouchedInside = false;
 	bool m_isTouchedOutside = false;
-	// bool m_isMovingToSlot = false;
 	
-	// public bool m_isOnSlot = false;
-	// public Slot m_hoverSlot = null;
 	bool m_isPickedUp = false;
 	LayoutElement m_layoutElement;
 	Canvas m_canvas;
 	SlotGroupManager m_slotGroupManager;
+
 
 	public void InitHierarchyDependents(){
 		this.m_axisScroller = FindInParents<AxisScroller>(gameObject);
@@ -138,9 +136,7 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		this.m_initCol = m_image.color;
 		
 		if(!this.m_Item.isStackable){
-			// this.m_Quantity = 1;
 			this.m_quantText.enabled = false;
-		// }else{
 
 		}
 		this.m_Quantity = quantity;
@@ -581,7 +577,7 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 
 	
 	void OnNonEventTap(PointerEventData eventData){
-		
+		// DebugUtility.PrintRed(this.m_itemInstance.name + "'s Tap is called");
 		StartCoroutine(ChangeColor(Color.magenta, Color.white));
 	}
 
