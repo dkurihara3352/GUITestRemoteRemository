@@ -59,6 +59,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	protected void SetAxis(int axis){
 		m_axis = axis;
 	}
+	
 
 	void SmoothFocus(RectTransform rt, float normalizedPosOnTargetRect ,float focusInitVel){
 		
@@ -74,7 +75,6 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		if(m_elements != null){
 			Vector2 newPos = m_elements[0].anchoredPosition;
 			newPos[m_axis] += displacement;
-			// Vector2 newPos = new Vector2(m_elements[0].anchoredPosition[m_axis] + displacement, m_elements[0].anchoredPosition.y);
 			m_elements[0].anchoredPosition = newPos;
 			AlignElements();
 		}
@@ -121,11 +121,43 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		m_focusCurve.MoveKey(1, key1);
 	}
 
+	float ContentLength(RectTransform rt){
+		float result = -1f;
+		result = m_axis == 0? rt.rect.width: rt.rect.height;
+		return result;
+	}
+
+	float ContentPosOnAxis(RectTransform rt){
+		
+		Vector2 pivotOffset = new Vector2((rt.pivot.x - 0.5f) * rt.rect.width, (rt.pivot.y - 0.5f) * rt.rect.height);
+		Vector2 correctedAnchPos = rt.anchoredPosition - pivotOffset;
+		return m_axis ==0? correctedAnchPos.x: correctedAnchPos.y;
+	}
+
+	void SetPosition(RectTransform rt, Vector2 posOnRect){
+		Vector2 pivotOffset = new Vector2((rt.pivot.x - 0.5f) * rt.rect.width, (rt.pivot.y - 0.5f) * rt.rect.height);
+		Vector2 targetPos = posOnRect + pivotOffset;
+		rt.anchoredPosition  = targetPos;
+	}
+
+	void SetPosition(RectTransform rt, float pointOnRect){
+		Vector2 pivotOffset = new Vector2((rt.pivot.x - 0.5f) * rt.rect.width, (rt.pivot.y - 0.5f) * rt.rect.height);
+		Vector2 targetPos = Vector2.zero;
+		if(m_axis == 0){
+			targetPos = new Vector2(pointOnRect + pivotOffset.x, rt.anchoredPosition.y);
+		}else{
+			targetPos = new Vector2(rt.anchoredPosition.x, pointOnRect + pivotOffset.y);
+		}
+		rt.anchoredPosition = targetPos;
+	}
+
+
 	float GetTotalContentLength(){
 		float result = 0f;
 		for (int i = 0; i < m_elements.Count; i++)
 		{
-			result += m_elements[i].sizeDelta[m_axis];
+			/*result += m_elements[i].sizeDelta[m_axis];*/
+			result += ContentLength(m_elements[i]);
 		}
 		return result;
 	}
@@ -153,7 +185,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	public void StopMovement(){
 		m_isMovable = false;
 	}
-	void AlignElements(){
+	/*void AlignElements(){
 		if(m_elements != null){
 			float alignPoint = m_elements[0].anchoredPosition[m_axis];
 			for (int i = 0; i < m_elements.Count; i++)
@@ -165,8 +197,70 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 				alignPoint = rt.anchoredPosition[m_axis] + rt.sizeDelta[m_axis];
 			}
 		}
+	}*/
+	void AlignElements(){
+		if(m_elements != null){
+			float alignPoint = ContentPosOnAxis(m_elements[0]) - ContentLength(m_elements[0]) * .5f;
+			for (int i = 0; i < m_elements.Count; i++)
+			{
+				float newPoint = alignPoint + ContentLength(m_elements[i]) * 0.5f;
+				SetPosition(m_elements[i], newPoint);
+				alignPoint = ContentPosOnAxis(m_elements[i]) + ContentLength(m_elements[i]) * .5f;
+			}
+		}
 	}
 
+	/*IEnumerator MoveElements(float targetPos, float travelTime, float initVel){
+		while(!m_isDoneMoving){
+			m_isMovable = false;
+			yield return null;
+		}
+		float t = 0f;
+	
+		m_contentStartPos = m_elements[0].anchoredPosition[m_axis];		
+		
+		float tangentRad = (initVel == 0f || targetPos == 0f)? 0f: initVel/targetPos;
+		Keyframe newKey = m_focusCurve[0];
+			newKey.outTangent = tangentRad;
+		
+		m_focusCurve.MoveKey(0, newKey);
+		
+		m_isMovable = true;
+		m_isDoneMoving = false;
+		while(!m_isDoneMoving){
+			if(!m_isMovable){
+				m_isDoneMoving = true;
+				
+				yield break;
+			}
+			if(t>1f){
+				Vector2 settledPos = m_elements[0].anchoredPosition;
+				settledPos[m_axis] = m_contentStartPos + targetPos;
+				
+				
+				SetContentAnchoredPosition(settledPos[m_axis]);
+				m_isDoneMoving = true;
+				onFocus.Invoke(GetIndex(GetCurrentElementUnderCursor()));
+				yield break;
+			}
+			
+			RectTransform rt = m_elements[0];
+				
+			float target = m_contentStartPos + targetPos;
+			float value = m_focusCurve.Evaluate(t);
+			float targetThisFrame = m_contentStartPos *(1f - value) + target *(value);
+
+			
+			Vector2 newPos = rt.anchoredPosition;
+			newPos[m_axis] = targetThisFrame;
+
+			t += Time.unscaledDeltaTime / travelTime;
+			
+			SetContentAnchoredPosition(newPos[m_axis]);
+			
+			yield return null;
+		}
+	}*/
 	IEnumerator MoveElements(float targetPos, float travelTime, float initVel){
 		while(!m_isDoneMoving){
 			m_isMovable = false;
@@ -714,16 +808,6 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		return (1f - 1f / (Mathf.Abs(overStretching) * /*0.55f*/m_rubberValue / viewSize + 1f)) * viewSize * Mathf.Sign(overStretching);
 	}
 	
-	// public virtual void LayoutComplete(){
-
-	// }
-	// public virtual void GraphicUpdateComplete(){
-
-	// }
-
-	// public virtual void Rebuild(CanvasUpdate executing){
-
-	// }
-
+	
 	
 }
