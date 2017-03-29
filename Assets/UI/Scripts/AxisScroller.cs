@@ -503,7 +503,8 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		}
 		int index = GetIndex(rt);
 		
-		float result = index + (m_cursorPosOnRect - rt.anchoredPosition[m_axis]- (rt.sizeDelta[m_axis] * .5f))/ rt.sizeDelta[m_axis] ;
+		float result = index + (m_cursorPosOnRect - ContentPointOnAxis(rt) - (ContentLength(rt) * .5f))/ContentLength(rt);
+
 		return result;
 	}
 	public void OnDrag(PointerEventData eventData){
