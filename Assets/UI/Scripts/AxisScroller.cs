@@ -63,8 +63,9 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 
 	void SmoothFocus(RectTransform rt, float normalizedPosOnTargetRect ,float focusInitVel){
 		
-		float offset = (normalizedPosOnTargetRect - .5f) * rt.sizeDelta[m_axis];
-		float targetPos = - rt.anchoredPosition[m_axis] + m_cursorPosOnRect - offset;
+		
+		float offset = (normalizedPosOnTargetRect - .5f) * ContentLength(rt);
+		float targetPos = - ContentPointOnAxis(rt) + m_cursorPosOnRect - offset;
 		
 		StartCoroutine(MoveElements(targetPos, m_focusTime, focusInitVel));
 	}
