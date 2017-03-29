@@ -185,19 +185,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	public void StopMovement(){
 		m_isMovable = false;
 	}
-	/*void AlignElements(){
-		if(m_elements != null){
-			float alignPoint = m_elements[0].anchoredPosition[m_axis];
-			for (int i = 0; i < m_elements.Count; i++)
-			{
-				RectTransform rt = m_elements[i];
-				Vector2 newPos = rt.anchoredPosition;
-				newPos[m_axis] = alignPoint;
-				rt.anchoredPosition = newPos;
-				alignPoint = rt.anchoredPosition[m_axis] + rt.sizeDelta[m_axis];
-			}
-		}
-	}*/
+	
 	void AlignElements(){
 		if(m_elements != null){
 			float alignPoint = ContentPointOnAxis(m_elements[0]) - ContentLength(m_elements[0]) * .5f;
@@ -210,57 +198,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		}
 	}
 
-	/*IEnumerator MoveElements(float targetPos, float travelTime, float initVel){
-		while(!m_isDoneMoving){
-			m_isMovable = false;
-			yield return null;
-		}
-		float t = 0f;
 	
-		m_contentStartPos = m_elements[0].anchoredPosition[m_axis];		
-		
-		float tangentRad = (initVel == 0f || targetPos == 0f)? 0f: initVel/targetPos;
-		Keyframe newKey = m_focusCurve[0];
-			newKey.outTangent = tangentRad;
-		
-		m_focusCurve.MoveKey(0, newKey);
-		
-		m_isMovable = true;
-		m_isDoneMoving = false;
-		while(!m_isDoneMoving){
-			if(!m_isMovable){
-				m_isDoneMoving = true;
-				
-				yield break;
-			}
-			if(t>1f){
-				Vector2 settledPos = m_elements[0].anchoredPosition;
-				settledPos[m_axis] = m_contentStartPos + targetPos;
-				
-				
-				SetContentAnchoredPosition(settledPos[m_axis]);
-				m_isDoneMoving = true;
-				onFocus.Invoke(GetIndex(GetCurrentElementUnderCursor()));
-				yield break;
-			}
-			
-			RectTransform rt = m_elements[0];
-				
-			float target = m_contentStartPos + targetPos;
-			float value = m_focusCurve.Evaluate(t);
-			float targetThisFrame = m_contentStartPos *(1f - value) + target *(value);
-
-			
-			Vector2 newPos = rt.anchoredPosition;
-			newPos[m_axis] = targetThisFrame;
-
-			t += Time.unscaledDeltaTime / travelTime;
-			
-			SetContentAnchoredPosition(newPos[m_axis]);
-			
-			yield return null;
-		}
-	}*/
 	IEnumerator MoveElements(float targetPos, float travelTime, float initVel){
 		while(!m_isDoneMoving){
 			m_isMovable = false;
@@ -286,14 +224,9 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 				yield break;
 			}
 			if(t>1f){
-				// Vector2 settledPos = m_elements[0].anchoredPosition;
-				// settledPos[m_axis] = m_contentStartPos + targetPos;
 				
-				// float settledPoint = ContentPointOnAxis(m_elements[0]);
-				// settledPoint += targetPos;
 				float settledPoint = m_contentStartPos + targetPos;
 				
-				// SetContentAnchoredPosition(settledPos[m_axis]);
 				SetContentAnchoredPosition(settledPoint);
 				m_isDoneMoving = true;
 				onFocus.Invoke(GetIndex(GetCurrentElementUnderCursor()));
@@ -305,11 +238,6 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 			float target = m_contentStartPos + targetPos;
 			float value = m_focusCurve.Evaluate(t);
 			float targetThisFrame = m_contentStartPos *(1f - value) + target *(value);
-
-			
-			// Vector2 newPos = rt.anchoredPosition;
-			// float newPoint = ContentPointOnAxis(rt);
-			// newPos[m_axis] = targetThisFrame;
 
 			t += Time.unscaledDeltaTime / travelTime;
 			
@@ -411,7 +339,8 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		Vector2 pointerStartPosV2 = Vector2.zero;
 		RectTransformUtility.ScreenPointToLocalPointInRectangle(m_rectTrans, eventData.position, eventData.pressEventCamera, out pointerStartPosV2);
 		m_pointerStartPos = pointerStartPosV2[m_axis];
-		m_contentStartPos = m_elements[0].anchoredPosition[m_axis];
+		// m_contentStartPos = m_elements[0].anchoredPosition[m_axis];
+		m_contentStartPos = ContentPointOnAxis(m_elements[0]);
 		m_RTUnderCursorAtTouch = GetCurrentElementUnderCursor();
 	}
 	Vector2 m_pointerPosOnRect = Vector2.zero;
@@ -430,11 +359,13 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 
 		if(!m_loop){
 
-			float offset = GetOffset(m_contDeltaPos - m_elements[0].anchoredPosition[m_axis]);
+			// float offset = GetOffset(m_contDeltaPos - m_elements[0].anchoredPosition[m_axis]);
+			float offset = GetOffset(m_contDeltaPos - ContentPointOnAxis(m_elements[0]));
 			m_contDeltaPos += offset;
 		
 			if(offset != 0f)
-				m_contDeltaPos -= RubberDelta(offset, m_rectTrans.sizeDelta[m_axis]);
+				// m_contDeltaPos -= RubberDelta(offset, m_rectTrans.sizeDelta[m_axis]);
+				m_contDeltaPos -= RubberDelta(offset, ContentLength(m_rectTrans));
 		}
 		
 		SetContentAnchoredPosition(m_contDeltaPos);
@@ -442,15 +373,6 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	}
 
 
-	void LogElementsPosition(){
-		string result = string.Empty;
-		for (int i = 0; i < m_elements.Count; i++)
-		{
-			string str = " element " + i.ToString() + " pos.x = " + m_elements[i].anchoredPosition.x + " pos.y = " + m_elements[i].anchoredPosition.y;
-			result += str;
-		}
-		print(result);
-	}
 	void CheckAndSwapElements(){
 		
 		if(m_loop){
@@ -466,19 +388,19 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 				RectTransform maxRT = m_elements[m_elements.Count -1];
 				RectTransform RTToMove = null;
 				Vector2 newPos = Vector2.zero;
+				float newPoint = -1f;
 
 				if(curIndex < m_initiallyFocusedIndex){//scroll toward right
-					newPos = maxRT.anchoredPosition;
-					newPos[m_axis] = minRT.anchoredPosition[m_axis] - minRT.sizeDelta[m_axis] * .5f - maxRT.sizeDelta[m_axis] * .5f;
+					
+					newPoint = ContentPointOnAxis(minRT) - ContentLength(minRT) * .5f - ContentLength(maxRT) * .5f;
 					RTToMove = maxRT;
 				}else{
 				
-					newPos = minRT.anchoredPosition;
-					newPos[m_axis] = maxRT.anchoredPosition[m_axis] + maxRT.sizeDelta[m_axis] * .5f + minRT.sizeDelta[m_axis] * .5f;
+					newPoint = ContentPointOnAxis(maxRT) + ContentLength(maxRT) * .5f + ContentLength(minRT) * .5f;
 					RTToMove = minRT;
 				}
 
-				float delta = m_elements[0].anchoredPosition[m_axis] - m_contentStartPos;
+				float delta = ContentPointOnAxis(m_elements[0]) - m_contentStartPos;
 				
 
 				if(RTToMove == minRT){
@@ -489,9 +411,9 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 					m_elements.Insert(0, maxRT);
 				}
 
-				RTToMove.anchoredPosition = newPos;
+				SetPosition(RTToMove, newPoint);				
 				
-				delta = m_elements[0].anchoredPosition[m_axis] - delta;
+				delta = ContentPointOnAxis(m_elements[0]) -delta;
 				m_contentStartPos = delta;
 				
 				curIndex = GetCurrentElementIndexUnderCursor();
