@@ -636,9 +636,9 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	public float m_searchThresh = 200f;
 	bool m_isDoneMoving = true;
 	IEnumerator Decelerate(float initVel){
-		// print("dec called");
+		
 		while(!m_isDoneMoving){
-			// print("<color=#ff00ffff>waiting for moving is done in dec</color>");
+			
 			m_isMovable = false;
 			yield return null;
 		}
@@ -647,10 +647,10 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		m_isMovable = true;
 		m_isDoneMoving = false;
 		while(!m_isDoneMoving){
-			// print("<color=#ff00ffff>main loop of dec entered</color>");
+		
 			if(!m_isMovable){
 				m_isDoneMoving = true;
-				// print("<color=#ff00ffff>broken out from a coroutine Decelerate</color>");
+		
 				yield break;
 			}
 			if(!m_loop){
@@ -667,7 +667,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 						SmoothFocus(m_elements[0], GetMinFocusTargetNormalizedPos(), offsetVel);
 					}	
 					m_isDoneMoving = true;
-					// print("<color=#ff00ffff>broken out from a coroutine Decelerate: offset != 0</color>");
+					
 					yield break;
 				}
 			}
@@ -676,7 +676,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 				if(Mathf.Abs(vel) < m_stopThresh){
 					
 					m_isDoneMoving = true;
-					// print("<color=#ff00ffff>broken out from a coroutine Decelerate: under stop thresh</color>");
+					
 					yield break;
 				}
 			}else{// not Continuous
@@ -686,20 +686,20 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 					Snap(vel);
 					
 					m_isDoneMoving = true;
-					// print("<color=#ff00ffff>broken out from a coroutine Decelerate: under searchThresh</color>");
+					
 					yield break;
 				}
 			}
 			
 			
 			float delta = vel * Time.unscaledDeltaTime;
-			float targetPos = m_elements[0].anchoredPosition[m_axis] + delta;
+			float targetPos = ContentPointOnAxis(m_elements[0]) + delta;
 			
 			vel *=  Mathf.Pow(m_deceleration,Time.unscaledDeltaTime);
 			
 			
 			SetContentAnchoredPosition(targetPos);
-			// print("<color=#ff00ffff> the end of dec reached</color>");
+			
 			yield return null;
 		}
 	}
@@ -715,8 +715,9 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		for (int i = 0; i < m_elements.Count; i++)
 		{
 			RectTransform eleRT = m_elements[i];
-			if(eleRT.anchoredPosition[m_axis] - eleRT.sizeDelta[m_axis] * .5f <= m_cursorPosOnRect){
-				if(eleRT.anchoredPosition[m_axis] + eleRT.sizeDelta[m_axis] * .5f >= m_cursorPosOnRect)
+			
+			if(ContentPointOnAxis(eleRT) - ContentLength(eleRT) *.5f <= m_cursorPosOnRect){
+				if(ContentPointOnAxis(eleRT) + ContentLength(eleRT) *.5f >= m_cursorPosOnRect)
 					result = eleRT;
 			}
 		}
@@ -728,8 +729,9 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		for (int i = 0; i < m_elements.Count; i++)
 		{
 			RectTransform eleRT = m_elements[i];
-			float min = eleRT.anchoredPosition[m_axis] - eleRT.sizeDelta[m_axis] * .5f;
-			float max = eleRT.anchoredPosition[m_axis] + eleRT.sizeDelta[m_axis] * .5f;
+			
+			float min = ContentPointOnAxis(eleRT) - ContentLength(eleRT) *.5f;
+			float max = ContentPointOnAxis(eleRT) + ContentLength(eleRT) *.5f;
 			if(min <= m_cursorPosOnRect){
 				if(max >= m_cursorPosOnRect)
 					result = i;
