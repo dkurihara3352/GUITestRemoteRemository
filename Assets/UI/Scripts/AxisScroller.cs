@@ -9,20 +9,20 @@ using MyUtility;
 public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBeginDragHandler, IEndDragHandler{
 
 	
-	Image image;
-	public Color defCol = new Color(1f, 1f, 1f, .5f);
-	Color red = new Color(1f, 0f, 0f, .5f);
-	Color blue = new Color(0f, 0f, 1f, .5f);
+	Image m_image;
+	Color m_defCol = new Color(1f, 1f, 1f, .5f);
+	Color m_red = new Color(1f, 0f, 0f, .5f);
+	Color m_blue = new Color(0f, 0f, 1f, .5f);
 
 
 	public List<RectTransform> m_elements;
 	List<RectTransform> m_indexedElements;
 	public bool m_loop;
-	public bool m_autoGen;
-	public float m_elementDimension;
+	// public bool m_autoGen;
+	// public float m_elementDimension;
 	public bool m_isContinuous;
 	public int m_initiallyFocusedIndex = 1;
-	public GUISkin guiSkin;
+	public GUISkin m_guiSkin;
 
 	[System.SerializableAttribute]
 	public class AxisDragFloatArgEvent: UnityEvent<float>{
@@ -36,16 +36,16 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	public AxisDragFloatArgEvent onValueChanged = new AxisDragFloatArgEvent();
 	public AxisDragIntArgEvent onFocus = new AxisDragIntArgEvent();
 
-	public AnimationCurve focusCurve;
+	public AnimationCurve m_focusCurve;
 
-	public int m_axis = 0;
+	private int m_axis = 0;
 	
 	RectTransform m_rectTrans;
-	public float focusTime = .2f;
+	public float m_focusTime = .2f;
 
 	[RangeAttribute(0f, 1f)]
 	public float normalizedCursorPos = 0.5f;
-	float cursorPosOnRect{
+	float m_cursorPosOnRect{
 		get{
 			if(m_rectTrans != null)
 				return (normalizedCursorPos - .5f) * m_rectTrans.sizeDelta[m_axis];
@@ -53,22 +53,24 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		}
 	}
 	[RangeAttribute(0f, 1f)]
-	public float normalizedPosOnRect = 0.5f;
+	public float m_normalizedPosOnRect = 0.5f;
 
 	
-
+	protected void SetAxis(int axis){
+		m_axis = axis;
+	}
 
 	void SmoothFocus(RectTransform rt, float normalizedPosOnTargetRect ,float focusInitVel){
 		
 		float offset = (normalizedPosOnTargetRect - .5f) * rt.sizeDelta[m_axis];
-		float targetPos = - rt.anchoredPosition[m_axis] + cursorPosOnRect - offset;
+		float targetPos = - rt.anchoredPosition[m_axis] + m_cursorPosOnRect - offset;
 		
-		StartCoroutine(MoveElements(targetPos, focusTime, focusInitVel));
+		StartCoroutine(MoveElements(targetPos, m_focusTime, focusInitVel));
 	}
 	void InstantFocus(RectTransform rt, float normalizedPosOnTargetRect){
 		
 		float offset = (normalizedPosOnTargetRect - .5f) * rt.sizeDelta[m_axis];
-		float displacement = -rt.anchoredPosition[m_axis] + cursorPosOnRect - offset;
+		float displacement = -rt.anchoredPosition[m_axis] + m_cursorPosOnRect - offset;
 		if(m_elements != null){
 			Vector2 newPos = m_elements[0].anchoredPosition;
 			newPos[m_axis] += displacement;
@@ -84,8 +86,8 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		base.Start();
 		InitializeElements();
 		AlignElements();
-		image = gameObject.GetComponent<Image>();
-		image.color = defCol;
+		m_image = gameObject.GetComponent<Image>();
+		m_image.color = m_defCol;
 		m_rectTrans = GetComponent<RectTransform>();
 		m_totalContentLength = GetTotalContentLength();
 		InitializeCurve();
@@ -110,13 +112,13 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	}
 	void InitializeCurve(){
 		
-		focusCurve = new AnimationCurve();
+		m_focusCurve = new AnimationCurve();
 		Keyframe key0 = new Keyframe(0f, 0f, 0f, 0f);
 		Keyframe key1 = new Keyframe(1f, 1f, 0f, 0f);
-		focusCurve.AddKey(0f, 0f);
-		focusCurve.AddKey(1f, 1f);
-		focusCurve.MoveKey(0, key0);
-		focusCurve.MoveKey(1, key1);
+		m_focusCurve.AddKey(0f, 0f);
+		m_focusCurve.AddKey(1f, 1f);
+		m_focusCurve.MoveKey(0, key0);
+		m_focusCurve.MoveKey(1, key1);
 	}
 
 	float GetTotalContentLength(){
@@ -133,14 +135,14 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		}else{
 			m_elements.Clear();
 		}
-		if(!m_autoGen){
-			for (int i = 0; i < transform.childCount; i++)
-			{
-				Transform child = transform.GetChild(i);
-				if(child.GetComponent<RectTransform>())
-					m_elements.Add(child.GetComponent<RectTransform>());
-			}
+		
+		for (int i = 0; i < transform.childCount; i++)
+		{
+			Transform child = transform.GetChild(i);
+			if(child.GetComponent<RectTransform>())
+				m_elements.Add(child.GetComponent<RectTransform>());
 		}
+		
 		m_indexedElements = new List<RectTransform>();
 		for (int i = 0; i < m_elements.Count; i++)
 		{
@@ -159,7 +161,6 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 				RectTransform rt = m_elements[i];
 				Vector2 newPos = rt.anchoredPosition;
 				newPos[m_axis] = alignPoint;
-				// Vector2 newPos = new Vector2(alignPoint, rt.anchoredPosition.y);
 				rt.anchoredPosition = newPos;
 				alignPoint = rt.anchoredPosition[m_axis] + rt.sizeDelta[m_axis];
 			}
@@ -176,10 +177,10 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		m_contentStartPos = m_elements[0].anchoredPosition[m_axis];		
 		
 		float tangentRad = (initVel == 0f || targetPos == 0f)? 0f: initVel/targetPos;
-		Keyframe newKey = focusCurve[0];
+		Keyframe newKey = m_focusCurve[0];
 			newKey.outTangent = tangentRad;
 		
-		focusCurve.MoveKey(0, newKey);
+		m_focusCurve.MoveKey(0, newKey);
 		
 		m_isMovable = true;
 		m_isDoneMoving = false;
@@ -187,15 +188,12 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 			if(!m_isMovable){
 				m_isDoneMoving = true;
 				
-				// DebugUtility.PrintRed(gameObject.name + " has broken out from a coroutine MoveElements");
 				yield break;
 			}
 			if(t>1f){
 				Vector2 settledPos = m_elements[0].anchoredPosition;
 				settledPos[m_axis] = m_contentStartPos + targetPos;
-				// m_elements[0].anchoredPosition = new Vector2(m_contentStartPos + targetPos, m_elements[0].anchoredPosition.y);
-				// m_elements[0].anchoredPosition = 
-				// AlignElements();
+				
 				
 				SetContentAnchoredPosition(settledPos[m_axis]);
 				m_isDoneMoving = true;
@@ -206,15 +204,14 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 			RectTransform rt = m_elements[0];
 				
 			float target = m_contentStartPos + targetPos;
-			float value = focusCurve.Evaluate(t);
+			float value = m_focusCurve.Evaluate(t);
 			float targetThisFrame = m_contentStartPos *(1f - value) + target *(value);
 
-			// Vector2 newPos = new Vector2(targetThisFrame, rt.anchoredPosition.y);
+			
 			Vector2 newPos = rt.anchoredPosition;
 			newPos[m_axis] = targetThisFrame;
 
 			t += Time.unscaledDeltaTime / travelTime;
-			// rt.anchoredPosition = newPos;
 			
 			SetContentAnchoredPosition(newPos[m_axis]);
 			
@@ -225,22 +222,22 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 
 	/*	GUI
 	*/
-		public bool showGUI = false;
+		public bool m_showGUI = false;
 		void OnGUI(){
-			if(showGUI){
+			if(m_showGUI){
 
-				GUI.skin = guiSkin;
+				GUI.skin = m_guiSkin;
 				
 				Rect guiRect = new Rect(10f, 10f, 300f, 700f);
 				GUILayout.BeginArea(guiRect, GUI.skin.box);
 
 					DrawElementsInfo();
 					DrawSmoothFocus();
-					GUILayout.Label("tangent: " + Mathf.Rad2Deg * Mathf.Atan(focusCurve.keys[0].outTangent));
+					GUILayout.Label("tangent: " + Mathf.Rad2Deg * Mathf.Atan(m_focusCurve.keys[0].outTangent));
 					GUILayout.Label("releaseInitVel: " + m_releaseInitVel);
 					GUILayout.Label("offset: " + GetOffset(0f).ToString());
 
-					GUILayout.Label("pointerLocRecPos: " + m_pointerLocRecPos);
+					GUILayout.Label("pointerLocRecPos: " + m_pointerPosOnRect);
 					GUILayout.Label("pointerDelta: " + m_pointerDeltaPos);
 					GUILayout.Label("contentDelta: " + m_contDeltaPos);
 					GUILayout.Label("current cursor value: " + GetCurrentCursorValue().ToString());
@@ -290,7 +287,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 				}
 				if(GUILayout.Button("Move")){
 					if(m_elements != null)
-						SmoothFocus(m_indexedElements[m_ChosenIndex], normalizedPosOnRect, 0f);
+						SmoothFocus(m_indexedElements[m_ChosenIndex], m_normalizedPosOnRect, 0f);
 				}
 			GUILayout.EndHorizontal();
 		}
@@ -301,49 +298,47 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	
 	public void OnInitializePotentialDrag(PointerEventData eventData){
 		
-		// print(gameObject.name + "'s OnInitializePotentialDrag is called");
 		m_isMovable = false;
 		
 	}
 
-	float m_pointerStartLocalPos;
+	float m_pointerStartPos;
 	float m_contentStartPos;
 	
 	public void OnBeginDrag(PointerEventData eventData){
 
-		// print(gameObject.name + "'s OnBeginDrag is called");
+
 		Vector2 pointerStartPosV2 = Vector2.zero;
 		RectTransformUtility.ScreenPointToLocalPointInRectangle(m_rectTrans, eventData.position, eventData.pressEventCamera, out pointerStartPosV2);
-		m_pointerStartLocalPos = pointerStartPosV2[m_axis];
+		m_pointerStartPos = pointerStartPosV2[m_axis];
 		m_contentStartPos = m_elements[0].anchoredPosition[m_axis];
 		m_RTUnderCursorAtTouch = GetCurrentElementUnderCursor();
 	}
-	Vector2 m_pointerLocRecPos = Vector2.zero;
+	Vector2 m_pointerPosOnRect = Vector2.zero;
 	float m_pointerDeltaPos;
 	float m_contDeltaPos;
 	public void OnAxisDrag(PointerEventData eventData){
 		
-		// print(gameObject.name + "'s OnAxisDrag called");
-		image.color = red;
 		
-		RectTransformUtility.ScreenPointToLocalPointInRectangle(m_rectTrans, eventData.position, eventData.pressEventCamera, out m_pointerLocRecPos);
+		m_image.color = m_red;
+		
+		RectTransformUtility.ScreenPointToLocalPointInRectangle(m_rectTrans, eventData.position, eventData.pressEventCamera, out m_pointerPosOnRect);
 			
-		m_pointerDeltaPos = m_pointerLocRecPos[m_axis] - m_pointerStartLocalPos;
+		m_pointerDeltaPos = m_pointerPosOnRect[m_axis] - m_pointerStartPos;
 		
 		m_contDeltaPos = m_contentStartPos + m_pointerDeltaPos;
 
 		if(!m_loop){
 
-		float offset = GetOffset(m_contDeltaPos - m_elements[0].anchoredPosition[m_axis]);
-		m_contDeltaPos += offset;
-	
-		if(offset != 0f)
-			m_contDeltaPos -= RubberDelta(offset, m_rectTrans.sizeDelta[m_axis]);
+			float offset = GetOffset(m_contDeltaPos - m_elements[0].anchoredPosition[m_axis]);
+			m_contDeltaPos += offset;
+		
+			if(offset != 0f)
+				m_contDeltaPos -= RubberDelta(offset, m_rectTrans.sizeDelta[m_axis]);
 		}
 		
 		SetContentAnchoredPosition(m_contDeltaPos);
 		
-		// print(gameObject.name + "'s OnAsixDrag is ended");
 	}
 
 
@@ -357,13 +352,12 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		print(result);
 	}
 	void CheckAndSwapElements(){
-		// print("CAS entered");
-		// LogElementsPosition();
+		
 		if(m_loop){
 			int curIndex = GetCurrentElementIndexUnderCursor();
 			
 			for (int i = 0; i < m_elements.Count +1; i++){
-				// LogElementsPosition();
+				
 				if(curIndex == m_initiallyFocusedIndex)
 					break;
 
@@ -406,7 +400,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 
 		}else
 			return;
-		// print("CAS ended");
+		
 	}
 	
 
@@ -420,9 +414,9 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		
 		float viewRectMin = /*m_rectTrans.anchoredPosition[m_axis]*/ - m_rectTrans.sizeDelta[m_axis] *.5f;
 		float viewRectMax = /*m_rectTrans.anchoredPosition[m_axis]*/  m_rectTrans.sizeDelta[m_axis] *.5f;
-		float minMargin = cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - minRT.sizeDelta[m_axis] * .5f - (normalizedPosOnRect - .5f) * minRT.sizeDelta[m_axis];
+		float minMargin = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - minRT.sizeDelta[m_axis] * .5f - (m_normalizedPosOnRect - .5f) * minRT.sizeDelta[m_axis];
 		float contentMin = minMargin> 0f? curMinContentPoint - minMargin: curMinContentPoint;
-		float maxMargin = cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - maxRT.sizeDelta[m_axis] * .5f - (normalizedPosOnRect - .5f) * minRT.sizeDelta[m_axis];
+		float maxMargin = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - maxRT.sizeDelta[m_axis] * .5f - (m_normalizedPosOnRect - .5f) * minRT.sizeDelta[m_axis];
 		float contentMax = maxMargin> 0f? curMaxContentPoint + maxMargin: curMaxContentPoint;
 
 
@@ -431,8 +425,6 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		if(viewRectMax - contentMax > 0)
 			result = viewRectMax - contentMax;
 
-		
-		
 		return result; 
 	}
 	float m_correctedDelta;
@@ -476,27 +468,26 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		}
 		int index = GetIndex(rt);
 		
-		float result = index + (cursorPosOnRect - rt.anchoredPosition[m_axis]- (rt.sizeDelta[m_axis] * .5f))/ rt.sizeDelta[m_axis] ;
+		float result = index + (m_cursorPosOnRect - rt.anchoredPosition[m_axis]- (rt.sizeDelta[m_axis] * .5f))/ rt.sizeDelta[m_axis] ;
 		return result;
 	}
 	public void OnDrag(PointerEventData eventData){
 		
-		image.color = blue;
-		// print(this.gameObject.name.ToString() + "'s OnDrag is called");
+		m_image.color = m_blue;
+		
 		
 	}
 	public float m_offsetVelMult = .1f;
 	public void OnEndDrag(PointerEventData eventData){
-		image.color = defCol;
-		// print(gameObject.name + "'s OnEndDrag is called");
+		m_image.color = m_defCol;
+		
 		float offset = GetOffset(0f);
 		float offsetVel = offset * m_offsetVelMult;
 		if(offset > 0){
-			DebugUtility.PrintBlue("offset > 0, smooth focusing to " + GetMaxFocusTargetNormalizedPos().ToString());
+			
 			SmoothFocus(m_elements[m_elements.Count -1], GetMaxFocusTargetNormalizedPos(), offsetVel);
 		}else if(offset < 0){
 			
-			DebugUtility.PrintBlue("offset < 0, smooth focusing to " + GetMinFocusTargetNormalizedPos().ToString());
 			SmoothFocus(m_elements[0], GetMinFocusTargetNormalizedPos(), offsetVel);
 		}else{
 			
@@ -504,20 +495,21 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		}
 		
 	}
-	public float endPadding = 20f;
+	
 	float GetMaxFocusTargetNormalizedPos(){
 		float result = -1f;
 		float viewMax = m_rectTrans.sizeDelta[m_axis] *.5f;
-		float contentMaxAtRest = cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f + m_elements[m_elements.Count -1].sizeDelta[m_axis] * .5f + (normalizedPosOnRect - .5f) * m_elements[m_elements.Count -1].sizeDelta[m_axis];
+		float contentMaxAtRest = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f + m_elements[m_elements.Count -1].sizeDelta[m_axis] * .5f + (m_normalizedPosOnRect - .5f) * m_elements[m_elements.Count -1].sizeDelta[m_axis];
 		float maxMargin = 0f;
 		
-		if(contentMaxAtRest >= viewMax){
-			maxMargin = m_rectTrans.sizeDelta[m_axis] - (cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f)/* - endPadding*/;
+		if(m_isContinuous && (m_axis == 0? m_rectTrans.rect.width: m_rectTrans.rect.height) < m_totalContentLength /*contentMaxAtRest >= viewMax*/){
+			maxMargin = m_rectTrans.sizeDelta[m_axis] - (m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f)/* - endPadding*/;
 			result = (m_elements[m_elements.Count - 1].sizeDelta[m_axis] - maxMargin) / m_elements[m_elements.Count - 1].sizeDelta[m_axis];
+			
 		
 		}else{
-			
-			result = .5f;
+			result = m_normalizedPosOnRect;
+			// result = .5f;
 		}
 		
 		return result;
@@ -525,17 +517,17 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	float GetMinFocusTargetNormalizedPos(){
 		float result = -1f;
 		float viewMin = 0f;
-		float contentMinAtRest = cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - m_elements[0].sizeDelta[m_axis] * .5f + (normalizedPosOnRect - .5f) * m_elements[0].sizeDelta[m_axis];
+		float contentMinAtRest = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - m_elements[0].sizeDelta[m_axis] * .5f + (m_normalizedPosOnRect - .5f) * m_elements[0].sizeDelta[m_axis];
 		float minMargin = 0f;
 		
-		if(contentMinAtRest <= viewMin){
-			minMargin = cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f/* - endPadding*/;
+		if(m_isContinuous && (m_axis == 0? m_rectTrans.rect.width: m_rectTrans.rect.height) < m_totalContentLength/*contentMinAtRest <= viewMin*/){
+			minMargin = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f/* - endPadding*/;
 			result = minMargin / m_elements[0].sizeDelta[m_axis];
 		}else{
-
-			result = .5f;
+			result = m_normalizedPosOnRect;
+			// result = .5f;
 		}
-		// DebugUtility.PrintBlue("cursorPosOnRect: " + cursorPosOnRect + ", m_rectTrans.sizeDelta[m_axis] * .5f: " + m_rectTrans.sizeDelta[m_axis] * .5f + ", m_elements[0].sizeDelta[m_axis] * .5f: " + m_elements[0].sizeDelta[m_axis] * .5f);
+		
 		return result;
 	}
 	public float m_scrollThresh = 4000f;
@@ -687,8 +679,8 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		for (int i = 0; i < m_elements.Count; i++)
 		{
 			RectTransform eleRT = m_elements[i];
-			if(eleRT.anchoredPosition[m_axis] - eleRT.sizeDelta[m_axis] * .5f <= cursorPosOnRect){
-				if(eleRT.anchoredPosition[m_axis] + eleRT.sizeDelta[m_axis] * .5f >= cursorPosOnRect)
+			if(eleRT.anchoredPosition[m_axis] - eleRT.sizeDelta[m_axis] * .5f <= m_cursorPosOnRect){
+				if(eleRT.anchoredPosition[m_axis] + eleRT.sizeDelta[m_axis] * .5f >= m_cursorPosOnRect)
 					result = eleRT;
 			}
 		}
@@ -702,8 +694,8 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 			RectTransform eleRT = m_elements[i];
 			float min = eleRT.anchoredPosition[m_axis] - eleRT.sizeDelta[m_axis] * .5f;
 			float max = eleRT.anchoredPosition[m_axis] + eleRT.sizeDelta[m_axis] * .5f;
-			if(min <= cursorPosOnRect){
-				if(max >= cursorPosOnRect)
+			if(min <= m_cursorPosOnRect){
+				if(max >= m_cursorPosOnRect)
 					result = i;
 			}
 			
