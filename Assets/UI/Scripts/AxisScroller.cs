@@ -70,12 +70,14 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	}
 	void InstantFocus(RectTransform rt, float normalizedPosOnTargetRect){
 		
-		float offset = (normalizedPosOnTargetRect - .5f) * rt.sizeDelta[m_axis];
-		float displacement = -rt.anchoredPosition[m_axis] + m_cursorPosOnRect - offset;
+		float offset = (normalizedPosOnTargetRect - .5f) *ContentLength(rt);
+
+		float displacement = - ContentPointOnAxis(rt) + m_cursorPosOnRect - offset;
 		if(m_elements != null){
-			Vector2 newPos = m_elements[0].anchoredPosition;
-			newPos[m_axis] += displacement;
-			m_elements[0].anchoredPosition = newPos;
+
+			float newPoint = ContentPointOnAxis(m_elements[0]);
+			newPoint += displacement;
+			SetPosition(m_elements[0], newPoint);
 			AlignElements();
 		}
 	}
@@ -430,22 +432,16 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		float result = 0f;
 		RectTransform minRT = m_elements[0];
 		RectTransform maxRT = m_elements[m_elements.Count - 1];
-		// float curMinContentPoint = minRT.anchoredPosition[m_axis] - minRT.sizeDelta[m_axis] * .5f + delta;
-		// float curMaxContentPoint = maxRT.anchoredPosition[m_axis] + maxRT.sizeDelta[m_axis] * .5f + delta;
+		
 		float curMinContentPoint = ContentPointOnAxis(minRT) - ContentLength(minRT) * .5f + delta;
 		float curMaxContentPoint = ContentPointOnAxis(maxRT) + ContentLength(maxRT) * .5f + delta;
 		
-		
-		// float viewRectMin = /*m_rectTrans.anchoredPosition[m_axis]*/ - m_rectTrans.sizeDelta[m_axis] *.5f;
-		// float viewRectMax = /*m_rectTrans.anchoredPosition[m_axis]*/  m_rectTrans.sizeDelta[m_axis] *.5f;
 		float viewRectMin = - ContentLength(m_rectTrans) *.5f;
 		float viewRectMax = ContentLength(m_rectTrans) *.5f;
 
-		// float minMargin = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - minRT.sizeDelta[m_axis] * .5f - (m_normalizedPosOnRect - .5f) * minRT.sizeDelta[m_axis];
 		float minMargin = m_cursorPosOnRect + ContentLength(m_rectTrans) *.5f - ContentLength(minRT) *.5f - (m_normalizedPosOnRect - .5f) * ContentLength(minRT);
 		float contentMin = minMargin> 0f? curMinContentPoint - minMargin: curMinContentPoint;
 		
-		// float maxMargin = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - maxRT.sizeDelta[m_axis] * .5f - (m_normalizedPosOnRect - .5f) * minRT.sizeDelta[m_axis];
 		float maxMargin = m_cursorPosOnRect + ContentLength(m_rectTrans) *.5f - ContentLength(maxRT) *.5f - (m_normalizedPosOnRect - .5f) * ContentLength(minRT);
 		float contentMax = maxMargin> 0f? curMaxContentPoint + maxMargin: curMaxContentPoint;
 
@@ -461,8 +457,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	void SetContentAnchoredPosition(float newPos){
 	
 		RectTransform rt = m_elements[0];
-		// Vector2 curPos = rt.anchoredPosition;
-		// float totalDelta = newPos - curPos[m_axis];
+		
 		float curPoint = ContentPointOnAxis(rt);
 		float totalDelta = newPos - curPoint;
 		
@@ -470,14 +465,12 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 			
 			m_correctedDelta = totalDelta % Mathf.Abs(m_totalContentLength);
 			
-			// curPos[m_axis] += m_correctedDelta;
 			curPoint += m_correctedDelta;
 			
 		}else
-			// curPos[m_axis] += totalDelta;
+			
 			curPoint += totalDelta;
 
-		// rt.anchoredPosition = curPos;
 		SetPosition(rt, curPoint);
 		
 		AlignElements();
@@ -533,35 +526,41 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	}
 	
 	float GetMaxFocusTargetNormalizedPos(){
+		RectTransform lastRect = m_elements[m_elements.Count -1];
 		float result = -1f;
-		float viewMax = m_rectTrans.sizeDelta[m_axis] *.5f;
-		float contentMaxAtRest = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f + m_elements[m_elements.Count -1].sizeDelta[m_axis] * .5f + (m_normalizedPosOnRect - .5f) * m_elements[m_elements.Count -1].sizeDelta[m_axis];
-		float maxMargin = 0f;
 		
-		if(m_isContinuous && (m_axis == 0? m_rectTrans.rect.width: m_rectTrans.rect.height) < m_totalContentLength /*contentMaxAtRest >= viewMax*/){
-			maxMargin = m_rectTrans.sizeDelta[m_axis] - (m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f)/* - endPadding*/;
-			result = (m_elements[m_elements.Count - 1].sizeDelta[m_axis] - maxMargin) / m_elements[m_elements.Count - 1].sizeDelta[m_axis];
+		float normalizedPosOffset = (m_normalizedPosOnRect - .5f) *ContentLength(lastRect);
+		float contentMaxAtRect = m_cursorPosOnRect + ContentLength(m_rectTrans) * .5f + ContentLength(lastRect) *.5f + normalizedPosOffset;
+		
+		
+		if(m_isContinuous && (m_axis == 0? m_rectTrans.rect.width: m_rectTrans.rect.height) < m_totalContentLength ){
 			
+			float maxMargin = ContentLength(m_rectTrans) - (m_cursorPosOnRect + ContentLength(m_rectTrans) * .5f);
+			
+			result = (ContentLength(lastRect) - maxMargin) / ContentLength(lastRect);
 		
 		}else{
 			result = m_normalizedPosOnRect;
-			// result = .5f;
 		}
 		
 		return result;
 	}
 	float GetMinFocusTargetNormalizedPos(){
+		RectTransform firstRect = m_elements[0];
 		float result = -1f;
-		float viewMin = 0f;
-		float contentMinAtRest = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - m_elements[0].sizeDelta[m_axis] * .5f + (m_normalizedPosOnRect - .5f) * m_elements[0].sizeDelta[m_axis];
-		float minMargin = 0f;
 		
-		if(m_isContinuous && (m_axis == 0? m_rectTrans.rect.width: m_rectTrans.rect.height) < m_totalContentLength/*contentMinAtRest <= viewMin*/){
-			minMargin = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f/* - endPadding*/;
-			result = minMargin / m_elements[0].sizeDelta[m_axis];
+		float normalizedPosOffset = (m_normalizedPosOnRect - .5f) * ContentLength(firstRect);
+		
+		float contentMinAtRect = m_cursorPosOnRect + ContentLength(m_rectTrans) * .5f - ContentLength(firstRect) *.5f + normalizedPosOffset;
+		
+		if(m_isContinuous && (m_axis == 0? m_rectTrans.rect.width: m_rectTrans.rect.height) < m_totalContentLength){
+		
+			float minMargin = m_cursorPosOnRect + ContentLength(m_rectTrans) * .5f;
+			
+			result = minMargin / ContentLength(firstRect);
 		}else{
 			result = m_normalizedPosOnRect;
-			// result = .5f;
+			
 		}
 		
 		return result;
