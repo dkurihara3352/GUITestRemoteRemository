@@ -15,7 +15,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	Color m_blue = new Color(0f, 0f, 1f, .5f);
 
 
-	public List<RectTransform> m_elements;
+	List<RectTransform> m_elements;
 	List<RectTransform> m_indexedElements;
 	public bool m_loop;
 	
@@ -31,19 +31,19 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	public class AxisDragIntArgEvent: UnityEvent<int>{
 
 	}
-
+	public bool m_showGUI = false;
 	public AxisDragFloatArgEvent onValueChanged = new AxisDragFloatArgEvent();
 	public AxisDragIntArgEvent onFocus = new AxisDragIntArgEvent();
 
-	public AnimationCurve m_focusCurve;
+	AnimationCurve m_focusCurve;
 
 	private int m_axis = 0;
 	
 	RectTransform m_rectTrans;
-	public float m_focusTime = .2f;
+	float m_focusTime = .2f;
 
 	[RangeAttribute(0f, 1f)]
-	public float normalizedCursorPos = 0.5f;
+	float normalizedCursorPos = 0.5f;
 	float m_cursorPosOnRect{
 		get{
 			if(m_rectTrans != null)
@@ -52,7 +52,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		}
 	}
 	[RangeAttribute(0f, 1f)]
-	public float m_normalizedPosOnRect = 0.5f;
+	float m_normalizedPosOnRect = 0.5f;
 
 	
 	protected void SetAxis(int axis){
@@ -246,11 +246,11 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 			yield return null;
 		}
 	}
+	
 
 
 	/*	GUI
 	*/
-		public bool m_showGUI = false;
 		void OnGUI(){
 			if(m_showGUI){
 
@@ -503,7 +503,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		
 		
 	}
-	public float m_offsetVelMult = .1f;
+	float m_offsetVelMult = .1f;
 	public void OnEndDrag(PointerEventData eventData){
 		m_image.color = m_defCol;
 		
@@ -568,9 +568,9 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		
 		return result;
 	}
-	public float m_scrollThresh = 4000f;
-	public float m_flickThresh = 300f;
-	public float m_maxReleaseVel = 5000f;
+	float m_scrollThresh = 4000f;
+	float m_flickThresh = 300f;
+	float m_maxReleaseVel = 5000f;
 	void InertialTranslate(PointerEventData eventData){
 		m_releaseInitVel = eventData.delta[m_axis] / Time.unscaledDeltaTime;
 		if(Mathf.Abs(m_releaseInitVel) > m_maxReleaseVel){
@@ -631,11 +631,11 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		SmoothFocus(targetRT, .5f, m_useInitVelOnFlick? initVel: 0f);
 		
 	}
-	public float m_deceleration = .001f;
-	public float m_stopThresh = 1f;
+	float m_deceleration = .001f;
+	float m_stopThresh = 1f;
 	float m_releaseInitVel;
 	bool m_isMovable;
-	public float m_searchThresh = 200f;
+	float m_searchThresh = 200f;
 	bool m_isDoneMoving = true;
 	IEnumerator Decelerate(float initVel){
 		
@@ -747,7 +747,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		}
 		return result;
 	}
-	public float m_rubberValue = 0.55f;
+	float m_rubberValue = 0.55f;
 	/*	this makes it harder to drag content as it goes farther away from its designated pos
 	*/
 	private float RubberDelta(float overStretching, float viewSize){
