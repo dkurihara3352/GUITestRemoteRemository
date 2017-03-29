@@ -430,15 +430,23 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		float result = 0f;
 		RectTransform minRT = m_elements[0];
 		RectTransform maxRT = m_elements[m_elements.Count - 1];
-		float curMinContentPoint = minRT.anchoredPosition[m_axis] - minRT.sizeDelta[m_axis] * .5f + delta;
-		float curMaxContentPoint = maxRT.anchoredPosition[m_axis] + maxRT.sizeDelta[m_axis] * .5f + delta;
+		// float curMinContentPoint = minRT.anchoredPosition[m_axis] - minRT.sizeDelta[m_axis] * .5f + delta;
+		// float curMaxContentPoint = maxRT.anchoredPosition[m_axis] + maxRT.sizeDelta[m_axis] * .5f + delta;
+		float curMinContentPoint = ContentPointOnAxis(minRT) - ContentLength(minRT) * .5f + delta;
+		float curMaxContentPoint = ContentPointOnAxis(maxRT) + ContentLength(maxRT) * .5f + delta;
 		
 		
-		float viewRectMin = /*m_rectTrans.anchoredPosition[m_axis]*/ - m_rectTrans.sizeDelta[m_axis] *.5f;
-		float viewRectMax = /*m_rectTrans.anchoredPosition[m_axis]*/  m_rectTrans.sizeDelta[m_axis] *.5f;
-		float minMargin = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - minRT.sizeDelta[m_axis] * .5f - (m_normalizedPosOnRect - .5f) * minRT.sizeDelta[m_axis];
+		// float viewRectMin = /*m_rectTrans.anchoredPosition[m_axis]*/ - m_rectTrans.sizeDelta[m_axis] *.5f;
+		// float viewRectMax = /*m_rectTrans.anchoredPosition[m_axis]*/  m_rectTrans.sizeDelta[m_axis] *.5f;
+		float viewRectMin = - ContentLength(m_rectTrans) *.5f;
+		float viewRectMax = ContentLength(m_rectTrans) *.5f;
+
+		// float minMargin = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - minRT.sizeDelta[m_axis] * .5f - (m_normalizedPosOnRect - .5f) * minRT.sizeDelta[m_axis];
+		float minMargin = m_cursorPosOnRect + ContentLength(m_rectTrans) *.5f - ContentLength(minRT) *.5f - (m_normalizedPosOnRect - .5f) * ContentLength(minRT);
 		float contentMin = minMargin> 0f? curMinContentPoint - minMargin: curMinContentPoint;
-		float maxMargin = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - maxRT.sizeDelta[m_axis] * .5f - (m_normalizedPosOnRect - .5f) * minRT.sizeDelta[m_axis];
+		
+		// float maxMargin = m_cursorPosOnRect + m_rectTrans.sizeDelta[m_axis] * .5f - maxRT.sizeDelta[m_axis] * .5f - (m_normalizedPosOnRect - .5f) * minRT.sizeDelta[m_axis];
+		float maxMargin = m_cursorPosOnRect + ContentLength(m_rectTrans) *.5f - ContentLength(maxRT) *.5f - (m_normalizedPosOnRect - .5f) * ContentLength(minRT);
 		float contentMax = maxMargin> 0f? curMaxContentPoint + maxMargin: curMaxContentPoint;
 
 
