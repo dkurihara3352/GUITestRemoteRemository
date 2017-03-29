@@ -18,8 +18,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	public List<RectTransform> m_elements;
 	List<RectTransform> m_indexedElements;
 	public bool m_loop;
-	// public bool m_autoGen;
-	// public float m_elementDimension;
+	
 	public bool m_isContinuous;
 	public int m_initiallyFocusedIndex = 1;
 	public GUISkin m_guiSkin;
@@ -159,7 +158,6 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		float result = 0f;
 		for (int i = 0; i < m_elements.Count; i++)
 		{
-			/*result += m_elements[i].sizeDelta[m_axis];*/
 			result += ContentLength(m_elements[i]);
 		}
 		return result;
@@ -208,8 +206,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 			yield return null;
 		}
 		float t = 0f;
-	
-		/*m_contentStartPos = m_elements[0].anchoredPosition[m_axis];*/		
+		
 		m_contentStartPos = ContentPointOnAxis(m_elements[0]);
 		
 		float tangentRad = (initVel == 0f || targetPos == 0f)? 0f: initVel/targetPos;
@@ -342,7 +339,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		Vector2 pointerStartPosV2 = Vector2.zero;
 		RectTransformUtility.ScreenPointToLocalPointInRectangle(m_rectTrans, eventData.position, eventData.pressEventCamera, out pointerStartPosV2);
 		m_pointerStartPos = pointerStartPosV2[m_axis];
-		// m_contentStartPos = m_elements[0].anchoredPosition[m_axis];
+
 		m_contentStartPos = ContentPointOnAxis(m_elements[0]);
 		m_RTUnderCursorAtTouch = GetCurrentElementUnderCursor();
 	}
@@ -362,12 +359,11 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 
 		if(!m_loop){
 
-			// float offset = GetOffset(m_contDeltaPos - m_elements[0].anchoredPosition[m_axis]);
 			float offset = GetOffset(m_contDeltaPos - ContentPointOnAxis(m_elements[0]));
 			m_contDeltaPos += offset;
 		
 			if(offset != 0f)
-				// m_contDeltaPos -= RubberDelta(offset, m_rectTrans.sizeDelta[m_axis]);
+
 				m_contDeltaPos -= RubberDelta(offset, ContentLength(m_rectTrans));
 		}
 		
@@ -528,19 +524,23 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	
 	float GetMaxFocusTargetNormalizedPos(){
 		RectTransform lastRect = m_elements[m_elements.Count -1];
+		RectTransform viewRect = m_rectTrans;
 		float result = -1f;
 		
 		float normalizedPosOffset = (m_normalizedPosOnRect - .5f) *ContentLength(lastRect);
 		float contentMaxAtRect = m_cursorPosOnRect + ContentLength(m_rectTrans) * .5f + ContentLength(lastRect) *.5f + normalizedPosOffset;
 		
-		
-		if(m_isContinuous && (m_axis == 0? m_rectTrans.rect.width: m_rectTrans.rect.height) < m_totalContentLength ){
+		if(m_totalContentLength == 0f){// the slottables are initialized AFTER this is initialized
+			m_totalContentLength = GetTotalContentLength();
+		}
+		if(m_isContinuous && ContentLength(viewRect) < m_totalContentLength ){
 			
 			float maxMargin = ContentLength(m_rectTrans) - (m_cursorPosOnRect + ContentLength(m_rectTrans) * .5f);
 			
 			result = (ContentLength(lastRect) - maxMargin) / ContentLength(lastRect);
 		
 		}else{
+			
 			result = m_normalizedPosOnRect;
 		}
 		
@@ -553,7 +553,9 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		float normalizedPosOffset = (m_normalizedPosOnRect - .5f) * ContentLength(firstRect);
 		
 		float contentMinAtRect = m_cursorPosOnRect + ContentLength(m_rectTrans) * .5f - ContentLength(firstRect) *.5f + normalizedPosOffset;
-		
+		if(m_totalContentLength == 0f){
+			m_totalContentLength = GetTotalContentLength();
+		}
 		if(m_isContinuous && (m_axis == 0? m_rectTrans.rect.width: m_rectTrans.rect.height) < m_totalContentLength){
 		
 			float minMargin = m_cursorPosOnRect + ContentLength(m_rectTrans) * .5f;
@@ -749,7 +751,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	/*	this makes it harder to drag content as it goes farther away from its designated pos
 	*/
 	private float RubberDelta(float overStretching, float viewSize){
-		return (1f - 1f / (Mathf.Abs(overStretching) * /*0.55f*/m_rubberValue / viewSize + 1f)) * viewSize * Mathf.Sign(overStretching);
+		return (1f - 1f / (Mathf.Abs(overStretching) * m_rubberValue / viewSize + 1f)) * viewSize * Mathf.Sign(overStretching);
 	}
 	
 	
