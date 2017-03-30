@@ -11,8 +11,7 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 	public Canvas canvas;
 	Image image;
 	Color defocusedCol = new Color(.7f, .7f, .7f);
-	Color defaultCol = Color.white;
-	Color focusCol = Color.magenta;
+	Color focusCol = Color.white;
 	
 	RaycastBlocker m_raycastBlocker;
 	public GameObject m_rayBlockerPrefab;
@@ -37,7 +36,7 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 	protected override void Start(){
 		base.Start();
 		image = GetComponent<Image>();
-		image.color = defaultCol;
+		image.color = focusCol;
 		DeactivateCanvasGroup();
 	}
 
@@ -91,18 +90,14 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 	public void OnPopupHide(PointerEventData eventData){
 		print(gameObject.name + "'s OnpopupHide is called");
 		StartCoroutine(Fade(false));
-		/*
-			Start deactivating the raycastBlocker
-		*/
+		
 		m_raycastBlocker.Deactivate();
 	}
 
 	public void OpenPopup(){/*explicitly called from unity event*/
 		print(gameObject.name + "'s OpenPopup is called");
 		customInputModule.AddPopup(this.gameObject);
-		// transform.SetParent(canvas.transform);
-		// transform.SetAsLastSibling();
-		
+
 		StartCoroutine(Fade(true));
 
 	}
@@ -147,7 +142,7 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 		if(raycastBlocker == null){
 			raycastBlocker = Instantiate(m_rayBlockerPrefab, Vector3.zero, Quaternion.identity).GetComponent<RaycastBlocker>();
 		}
-		raycastBlocker.Initialize();
+		raycastBlocker.Initialize(fadeTime);
 		m_raycastBlocker = raycastBlocker;
 	}
 }

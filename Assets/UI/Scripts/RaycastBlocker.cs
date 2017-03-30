@@ -9,8 +9,8 @@ public class RaycastBlocker : MonoBehaviour {
 	public Transform m_canvasTrans;
 	RectTransform m_rectTrans;
 	CanvasGroup m_canvasGroup;
-
-	public void Initialize(){
+	float m_fadeTime;
+	public void Initialize(float fadeTime){
 		transform.SetParent(m_canvasTrans);
 		
 		m_rectTrans = GetComponent<RectTransform>();
@@ -24,6 +24,7 @@ public class RaycastBlocker : MonoBehaviour {
 		m_canvasGroup.interactable = false;
 		m_canvasGroup.blocksRaycasts = false;
 		// m_canvasGroup.ignoreParentGroups = true;
+		m_fadeTime = fadeTime;
 
 
 		m_isActivated = false;
@@ -67,12 +68,12 @@ public class RaycastBlocker : MonoBehaviour {
 	IEnumerator InternalActivate(){
 		float timer = 0f;
 		while(true){
-			if(timer > m_deactivateTimer){
+			if(timer > m_fadeTime){
 				CompleteActivation();
 				yield break;
 			}
 
-			m_canvasGroup.alpha = Mathf.Lerp(0f, m_activatedAlpha, timer/m_deactivateTimer);
+			m_canvasGroup.alpha = Mathf.Lerp(0f, m_activatedAlpha, timer/m_fadeTime);
 
 			timer += Time.unscaledDeltaTime;
 			yield return null;
@@ -88,7 +89,7 @@ public class RaycastBlocker : MonoBehaviour {
 	}
 	bool m_isBeingDeactivated = false;
 	bool m_isDeactivatable = true;
-	float m_deactivateTimer = .2f;
+	
 	float m_activatedAlpha = .5f;
 	IEnumerator InternalDeactivate(){
 		m_isBeingDeactivated = true;
@@ -102,14 +103,14 @@ public class RaycastBlocker : MonoBehaviour {
 				yield break;
 			}
 
-			if(timer > m_deactivateTimer){
+			if(timer > m_fadeTime){
 				m_isBeingDeactivated = false;
 				m_isDeactivatable = true;
 				CompleteDeactivation();
 				yield break;
 			}
 
-			m_canvasGroup.alpha = Mathf.Lerp(m_activatedAlpha, 0f, timer/m_deactivateTimer);
+			m_canvasGroup.alpha = Mathf.Lerp(m_activatedAlpha, 0f, timer/m_fadeTime);
 
 			timer += Time.unscaledDeltaTime;
 			yield return null;
