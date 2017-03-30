@@ -276,7 +276,7 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		}else{
 			pickedText = null;
 		}
-		/*m_slotGroupManager.draggedIcon = draggedIcon;*/
+		
 		m_slotGroupManager.SetDraggedIcon(draggedIcon);
 		string str;
 		if(m_draggedIcon == null)
@@ -564,10 +564,10 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 
 	Vector2 ConvertRectPosToCanvasPos(RectTransform rectTrans, PointerEventData eventData){
 		Vector2 worldPos = rectTrans.position;
-		Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, worldPos);
+		// Vector2 screenPos = RectTransformUtility.WorldToScreenPoint(null, worldPos);
 		RectTransform canvasRect = m_canvas.GetComponent<RectTransform>();
 		Vector3 canvasWorldPos;
-		RectTransformUtility.ScreenPointToWorldPointInRectangle(canvasRect, screenPos, eventData.pressEventCamera, out canvasWorldPos);
+		RectTransformUtility.ScreenPointToWorldPointInRectangle(canvasRect, /*screenPos*/rectTrans.position, eventData.pressEventCamera, out canvasWorldPos);
 		Vector2 canvasPos = new Vector2(canvasWorldPos.x - canvasRect.rect.width *.5f, canvasWorldPos.y - canvasRect.rect.height *.5f);
 
 		return canvasPos;
@@ -732,8 +732,8 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 
 	public IEnumerator Move(RectTransform targetRT, Vector2 initPos, Vector2 targetPos, float decRate){
 		
-		float dist = (targetPos - initPos).magnitude;
-		
+		// float dist = (targetPos - initPos).magnitude;
+		Vector2 pivotOffset = new Vector2((targetRT.pivot.x - .5f) * targetRT.rect.width, (targetRT.pivot.y - .5f) * targetRT.rect.height);
 		float t = 0f;
 		
 		m_isMovable = true;
@@ -751,7 +751,7 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 			}
 
 			if(t > 1f){
-				targetRT.anchoredPosition = targetPos;
+				targetRT.anchoredPosition = targetPos + pivotOffset;
 				m_isMovable = false;
 				m_isDoneMoving = true;
 				m_eventSystem.enabled = true;
@@ -762,7 +762,7 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 
 			Vector2 targetThisFrame = Vector2.Lerp(initPos, targetPos, value);
 
-			targetRT.anchoredPosition = targetThisFrame;
+			targetRT.anchoredPosition = targetThisFrame + pivotOffset;
 			
 
 			t += Time.unscaledDeltaTime/ m_travelTime;
@@ -780,13 +780,16 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		RectTransform panelRect = (RectTransform)m_OrigSG.panel;
 		Vector2 targetPos;
 		RectTransformUtility.ScreenPointToLocalPointInRectangle(panelRect, targetSlot.position, eventData.pressEventCamera, out targetPos);
-
-		targetPos.x += (panelRect.pivot.x - .5f) * panelRect.rect.width;
-		targetPos.y += (panelRect.pivot.y - .5f) * panelRect.rect.height;
-
+		Vector2 targetPosPivotOffset = new Vector2((panelRect.pivot.x - .5f) * panelRect.rect.width, (panelRect.pivot.y - .5f) * panelRect.rect.height);
+		
+		targetPos += targetPosPivotOffset;
+		
 		Vector2 initPos = m_rectTrans.anchoredPosition;
 
-		yield return StartCoroutine(Move(this.m_rectTrans, initPos, /*targetPos*/targetPos, decRate));
+		/*	feed the raw (un-pivot-corrected anchoredPos on Move)
+		*/
+
+		yield return StartCoroutine(Move(this.m_rectTrans, initPos, targetPos, decRate));
 		Attach(targetSlot);
 	}
 
@@ -800,13 +803,17 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 		Vector2 targetPos;
 		RectTransformUtility.ScreenPointToLocalPointInRectangle
 		(canvasRect, origSlot.position, eventData.pressEventCamera, out targetPos);
+		
+		Vector2 targetPosPivotOffset = new Vector2((canvasRect.pivot.x - .5f) * canvasRect.rect.width, (canvasRect.pivot.y - .5f) * canvasRect.rect.height);
+
+		targetPos += targetPosPivotOffset;
 
 		RectTransform iconRT = m_draggedIcon.GetComponent<RectTransform>();
 
 		Vector2 iconPos = iconRT.anchoredPosition;
-		Vector2 origPos = m_rectTrans.anchoredPosition;
+		
 
-		yield return StartCoroutine(Move(iconRT, iconPos,/*origPos*/targetPos, .5f));
+		yield return StartCoroutine(Move(iconRT, iconPos, targetPos, .5f));
 
 		DestroyDraggedIcon();
 		
@@ -828,13 +835,14 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 
 		RectTransform canvasRect = m_canvas.GetComponent<RectTransform>();
 		
-		Vector3 newSlotPosOnCanvas = Vector3.zero;
-		RectTransformUtility.ScreenPointToWorldPointInRectangle(canvasRect, slot.position, eventData.pressEventCamera, out newSlotPosOnCanvas);
+		Vector2 newSlotPosOnCanvas;
+		RectTransformUtility.ScreenPointToLocalPointInRectangle(canvasRect, slot.position, eventData.pressEventCamera, out newSlotPosOnCanvas);
 
-		Vector2 newPos = new Vector2(newSlotPosOnCanvas.x - canvasRect.rect.width * .5f, newSlotPosOnCanvas.y - canvasRect.rect.height * .5f);
+		Vector2 newSlotPosPivotOffset = new Vector2((canvasRect.pivot.x - .5f) * canvasRect.rect.width, (canvasRect.pivot.y - .5f) * canvasRect.rect.height);
 
+		newSlotPosOnCanvas += newSlotPosPivotOffset;
 
-		yield return StartCoroutine(Move(iconRT, curPos, newPos, .5f));
+		yield return StartCoroutine(Move(iconRT, curPos, newSlotPosOnCanvas, .5f));
 		
 		DestroyDraggedIcon();
 		

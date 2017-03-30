@@ -259,9 +259,8 @@ public class SlotGroup : MonoBehaviour {
 		Vector3 deltaV3 = new Vector3(delta.x, delta.y ,0f);
 
 		RectTransform axisRT = m_axisScroller.GetComponent<RectTransform>();
-		newSlotRectFocused.position = axisRT.position;/* integrate pivot offset*/
-		newSlotRectFocused.position += deltaV3;
-		DebugUtility.PrintPink(axisRT.position.ToString());
+		newSlotRectFocused.position = axisRT.position;
+		newSlotRectFocused.position += deltaV3;		
 		
 		newSlotRectFocused.transform.SetParent(FindObjectOfType<Canvas>().transform, true);
 		LayoutElement layEle = newSlotRectFocused.gameObject.AddComponent<LayoutElement>();
