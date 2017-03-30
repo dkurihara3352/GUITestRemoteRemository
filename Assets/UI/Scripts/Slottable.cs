@@ -531,16 +531,28 @@ public class Slottable : MonoBehaviour, IInitializePotentialDragHandler, IBeginD
 				this.m_OrigSG.CleanUpData();
 				targetSG.SortData();
 				this.m_OrigSG.SortData();
-				targetSG.UpdateSlots(eventData);
-				this.m_OrigSG.UpdateSlots(eventData);
+
+				RectTransform focusedRT;
+				RectTransform swappedFocusedRT;
+				targetSG.UpdateSlots(eventData, this, out focusedRT);
+				this.m_OrigSG.UpdateSlots(eventData, swappedSlottable, out swappedFocusedRT);
 				
-				this.StartCoroutine(this.MoveToSlot(targetSG, targetSG.GetNewSlotRect(this), eventData));
+				if(focusedRT != null){
+					this.StartCoroutine(this.MoveToSlot(targetSG, focusedRT, eventData));
+				}else{
+					this.StartCoroutine(this.MoveToSlot(targetSG, targetSG.GetNewSlotRect(this), eventData));
+				}
 				if(swapped){
 					
 					swappedSlottable.m_draggedIcon = swappedSlottable.CreateAndSetupDraggedIcon(m_canvas, ref swappedSlottable.m_pickedQuantText);
 					swappedSlottable.m_draggedIcon.GetComponent<RectTransform>().anchoredPosition = 
 					ConvertRectPosToCanvasPos(swappedSlottable.m_OrigSG.GetSlotRect(swappedSlottable), eventData);
-					swappedSlottable.StartCoroutine(swappedSlottable.MoveToSlot(this.m_OrigSG, this.m_OrigSG.GetNewSlotRect(swappedSlottable), eventData));
+					
+					if(swappedFocusedRT != null){
+						swappedSlottable.StartCoroutine(swappedSlottable.MoveToSlot(this.m_OrigSG, swappedFocusedRT, eventData));
+					}else{
+						swappedSlottable.StartCoroutine(swappedSlottable.MoveToSlot(this.m_OrigSG, this.m_OrigSG.GetNewSlotRect(swappedSlottable), eventData));
+					}
 				}
 			}
 		}else{

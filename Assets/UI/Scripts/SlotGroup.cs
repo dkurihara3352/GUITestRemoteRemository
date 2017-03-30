@@ -23,6 +23,7 @@ public class SlotGroup : MonoBehaviour {
 	public bool isExpandable;
 	public GameObject m_slotPrefab;
 	public bool isSubtractable;
+	public AxisScroller m_axisScroller;
 	
 	bool m_isActiveForSelection = false;
 	public bool m_IsActiveForSelection{
@@ -114,7 +115,7 @@ public class SlotGroup : MonoBehaviour {
 				
 		}
 	}
-	public void UpdateSlots(PointerEventData eventData){
+	public void UpdateSlots(PointerEventData eventData, Slottable incomingSlottable, out RectTransform focusedRT){
 		/*	create new slots part
 				search in the current slots for slottable reference
 				update quantit
@@ -195,9 +196,35 @@ public class SlotGroup : MonoBehaviour {
 			*/
 			
 			/*	if this sg has m_axisScroller
-					a) move all the slotRects in m_tempSlots to the new focused position
-					b) call the axis scroller to smooth focus to the position. Time their movement
+					
+					a) call the axis scroller to smooth focus to the position. Time their movement
+						no need to recursively perform smooth focusing as that not only complicates the matter but also restricts the design. Just make the direct parent axis scroller to scroll.
+					b) Create and spit out a rectTransform that is the newly focused destination for the incoming slottable
+				incomingSlottable might be null if not swapped (just added)
 			*/
+			focusedRT = null;
+			if(m_axisScroller != null){
+				DebugUtility.PrintRed(gameObject.name + "'s here");
+				if(incomingSlottable != null){
+					DebugUtility.PrintRed(gameObject + "'s here 2");
+					RectTransform newSlotRect = GetNewSlotRect(incomingSlottable);
+					Vector2 delta = Vector2.zero;
+					if(m_axisScroller.PerformSlottableFocus(newSlotRect, out delta))
+					/*	this method starts to move the scroller to the new pos if certain conditions meet
+						if need to move, it spits out the delta with which to get the destination pos on panel
+					*/
+					{
+						DebugUtility.PrintRed(gameObject.name + "'s here3");
+						/*
+							Create and spit out the focusedRT for the incomingSlottable to pursuit
+						*/
+						focusedRT = FocusedRT(delta, newSlotRect);
+					}else{
+						
+						focusedRT = null;
+					}
+				}
+			}
 			
 		/*	Transit part
 		*/
@@ -227,7 +254,29 @@ public class SlotGroup : MonoBehaviour {
 				}
 			}
 	}
+	GameObject m_addedSlot;
+	RectTransform FocusedRT(Vector2 delta, RectTransform newSlotRect){
+		RectTransform newSlotRectFocused = Instantiate(m_slotPrefab, Vector3.zero, Quaternion.identity).GetComponent<RectTransform>();
+		Vector3 deltaV3 = new Vector3(delta.x, delta.y ,0f);
+		// newSlotRectFocused.transform.position = panel.parent.position + deltaV3;
+		/*float axisScrollerCurPosX = */
 
+
+		RectTransform axisRT = m_axisScroller.GetComponent<RectTransform>();
+		newSlotRectFocused.position = axisRT.position;
+		newSlotRectFocused.position += deltaV3;
+		newSlotRectFocused.position += new Vector3(newSlotRectFocused.rect.width *.5f, newSlotRectFocused.rect.height *.5f, 0f);
+		DebugUtility.PrintPink(axisRT.position.ToString());
+		
+		newSlotRectFocused.transform.SetParent(FindObjectOfType<Canvas>().transform, true);
+		LayoutElement layEle = newSlotRectFocused.gameObject.AddComponent<LayoutElement>();
+		layEle.ignoreLayout = true;
+		Image image = newSlotRectFocused.GetComponent<Image>();
+		// image.enabled = false;
+		// newSlotRectFocused.anchoredPosition += delta;
+		m_addedSlot = newSlotRectFocused.gameObject;
+		return newSlotRectFocused;
+	}
 	public void CompleteSlotsUpdate(){
 		m_slots = m_tempSlots;
 		for (int i = 0; i < SlotCount; i++)
@@ -239,6 +288,7 @@ public class SlotGroup : MonoBehaviour {
 					image.enabled = true;
 			}
 		}
+		if(m_addedSlot != null) Destroy(m_addedSlot);
 	}
 	
 
