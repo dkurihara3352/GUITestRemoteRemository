@@ -909,8 +909,11 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 
 	Vector2 GetNormalizedPosOnRect(RectTransform container, RectTransform slotRect){
 
-		float normalizedPosX = (slotRect.position.x - slotRect.rect.width * .5f - (container.position.x - container.rect.width *.5f)) / container.rect.width;
-		float normalizedPosY = (slotRect.position.y - slotRect.rect.height * .5f - (container.position.y - container.rect.height *.5f)) / container.rect.height;
+		// float normalizedPosX = (slotRect.position.x - slotRect.rect.width * .5f - (container.position.x - container.rect.width *.5f)) / container.rect.width;
+		// float normalizedPosY = (slotRect.position.y - slotRect.rect.height * .5f - (container.position.y - container.rect.height *.5f)) / container.rect.height;
+
+		float normalizedPosX = (slotRect.position.x - (container.position.x - container.rect.width * .5f)) / container.rect.width;
+		float normalizedPosY = (slotRect.position.y - (container.position.y - container.rect.height * .5f)) / container.rect.height;
 		return new Vector2(normalizedPosX, normalizedPosY);
 	}
 }
