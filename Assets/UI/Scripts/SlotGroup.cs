@@ -261,7 +261,6 @@ public class SlotGroup : MonoBehaviour {
 		RectTransform axisRT = m_axisScroller.GetComponent<RectTransform>();
 		newSlotRectFocused.position = axisRT.position;/* integrate pivot offset*/
 		newSlotRectFocused.position += deltaV3;
-		// newSlotRectFocused.position += new Vector3(newSlotRectFocused.rect.width *.5f, newSlotRectFocused.rect.height *.5f, 0f);
 		DebugUtility.PrintPink(axisRT.position.ToString());
 		
 		newSlotRectFocused.transform.SetParent(FindObjectOfType<Canvas>().transform, true);

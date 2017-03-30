@@ -823,7 +823,6 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 						float maxFocusTargetNormalizedPos = GetMaxFocusTargetNormalizedPos();
 						if(normalizedPosOnRect[m_axis] > maxFocusTargetNormalizedPos){
 							
-							// Vector2 focusedPos;
 							if(m_axis == 0)
 								focusedPos = new Vector2(maxFocusTargetNormalizedPos, m_normalizedCursorPos);
 							else
@@ -908,9 +907,6 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	}
 
 	Vector2 GetNormalizedPosOnRect(RectTransform container, RectTransform slotRect){
-
-		// float normalizedPosX = (slotRect.position.x - slotRect.rect.width * .5f - (container.position.x - container.rect.width *.5f)) / container.rect.width;
-		// float normalizedPosY = (slotRect.position.y - slotRect.rect.height * .5f - (container.position.y - container.rect.height *.5f)) / container.rect.height;
 
 		float normalizedPosX = (slotRect.position.x - (container.position.x - container.rect.width * .5f)) / container.rect.width;
 		float normalizedPosY = (slotRect.position.y - (container.position.y - container.rect.height * .5f)) / container.rect.height;
