@@ -13,8 +13,9 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 	Color defocusedCol = new Color(.7f, .7f, .7f);
 	Color defaultCol = Color.white;
 	Color focusCol = Color.magenta;
-	// public Camera cam;
 	
+	RaycastBlocker m_raycastBlocker;
+	public GameObject m_rayBlockerPrefab;
 	CanvasGroup m_canvasGroup{
 		get{
 			if(this.gameObject.GetComponent<CanvasGroup>() == null){
@@ -61,6 +62,22 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 		print(gameObject.name + "'s OnPopupFocus is called");
 		image.color = focusCol;
 		ActivateCanvasGroup();
+		/*
+			if the raycastBlocker is being deactivated, stop the coroutine first
+			Activate and SetInHierarchy raycastBlocker
+			try to find one in the scene
+			create and store reference if not found
+		*/
+		if(m_raycastBlocker == null){
+			FindOrCreateRaycastBlocker();
+		}
+		if(m_raycastBlocker.IsBeingDeactivated()){
+			m_raycastBlocker.StopDeactivation();
+		}
+		transform.SetParent(canvas.transform, true);
+		
+		m_raycastBlocker.Activate(this.transform);
+		
 	}
 
 	public void OnPopupDefocus(PointerEventData eventData){
@@ -68,21 +85,24 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 		image.color = defocusedCol;
 		DeactivateCanvasGroup();
 		m_canvasGroup.alpha = 1f;
+		
 	}
 
 	public void OnPopupHide(PointerEventData eventData){
 		print(gameObject.name + "'s OnpopupHide is called");
 		StartCoroutine(Fade(false));
+		/*
+			Start deactivating the raycastBlocker
+		*/
+		m_raycastBlocker.Deactivate();
 	}
 
-	public void OpenPopup(){
+	public void OpenPopup(){/*explicitly called from unity event*/
 		print(gameObject.name + "'s OpenPopup is called");
 		customInputModule.AddPopup(this.gameObject);
-		transform.SetParent(canvas.transform);
-		transform.SetAsLastSibling();
-		// Vector2 newPosOnParentRect = Vector2.zero;
-		// // RectTransformUtility.ScreenPointToLocalPointInRectangle(canvas.transform.GetComponent<RectTransform>(), Input.mousePosition, cam, out newPosOnParentRect);
-		// m_rectTrans.anchoredPosition = newPosOnParentRect;
+		// transform.SetParent(canvas.transform);
+		// transform.SetAsLastSibling();
+		
 		StartCoroutine(Fade(true));
 
 	}
@@ -120,5 +140,14 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 			
 			yield return null;
 		}
+	}
+
+	void FindOrCreateRaycastBlocker(){
+		RaycastBlocker raycastBlocker = FindObjectOfType<RaycastBlocker>();
+		if(raycastBlocker == null){
+			raycastBlocker = Instantiate(m_rayBlockerPrefab, Vector3.zero, Quaternion.identity).GetComponent<RaycastBlocker>();
+		}
+		raycastBlocker.Initialize();
+		m_raycastBlocker = raycastBlocker;
 	}
 }
