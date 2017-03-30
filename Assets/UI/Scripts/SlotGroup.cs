@@ -204,9 +204,9 @@ public class SlotGroup : MonoBehaviour {
 			*/
 			focusedRT = null;
 			if(m_axisScroller != null){
-				DebugUtility.PrintRed(gameObject.name + "'s here");
+				
 				if(incomingSlottable != null){
-					DebugUtility.PrintRed(gameObject + "'s here 2");
+				
 					RectTransform newSlotRect = GetNewSlotRect(incomingSlottable);
 					Vector2 delta = Vector2.zero;
 					if(m_axisScroller.PerformSlottableFocus(newSlotRect, out delta))
@@ -214,7 +214,6 @@ public class SlotGroup : MonoBehaviour {
 						if need to move, it spits out the delta with which to get the destination pos on panel
 					*/
 					{
-						DebugUtility.PrintRed(gameObject.name + "'s here3");
 						/*
 							Create and spit out the focusedRT for the incomingSlottable to pursuit
 						*/
@@ -258,12 +257,9 @@ public class SlotGroup : MonoBehaviour {
 	RectTransform FocusedRT(Vector2 delta, RectTransform newSlotRect){
 		RectTransform newSlotRectFocused = Instantiate(m_slotPrefab, Vector3.zero, Quaternion.identity).GetComponent<RectTransform>();
 		Vector3 deltaV3 = new Vector3(delta.x, delta.y ,0f);
-		// newSlotRectFocused.transform.position = panel.parent.position + deltaV3;
-		/*float axisScrollerCurPosX = */
-
 
 		RectTransform axisRT = m_axisScroller.GetComponent<RectTransform>();
-		newSlotRectFocused.position = axisRT.position;
+		newSlotRectFocused.position = axisRT.position;/* integrate pivot offset*/
 		newSlotRectFocused.position += deltaV3;
 		newSlotRectFocused.position += new Vector3(newSlotRectFocused.rect.width *.5f, newSlotRectFocused.rect.height *.5f, 0f);
 		DebugUtility.PrintPink(axisRT.position.ToString());
@@ -272,8 +268,8 @@ public class SlotGroup : MonoBehaviour {
 		LayoutElement layEle = newSlotRectFocused.gameObject.AddComponent<LayoutElement>();
 		layEle.ignoreLayout = true;
 		Image image = newSlotRectFocused.GetComponent<Image>();
-		// image.enabled = false;
-		// newSlotRectFocused.anchoredPosition += delta;
+		image.enabled = false;
+		
 		m_addedSlot = newSlotRectFocused.gameObject;
 		return newSlotRectFocused;
 	}

@@ -43,11 +43,11 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 	float m_focusTime = .2f;
 
 	[RangeAttribute(0f, 1f)]
-	float normalizedCursorPos = 0.5f;
+	float m_normalizedCursorPos = 0.5f;
 	float m_cursorPosOnRect{
 		get{
 			if(m_rectTrans != null)
-				return (normalizedCursorPos - .5f) * m_rectTrans.sizeDelta[m_axis];
+				return (m_normalizedCursorPos - .5f) * m_rectTrans.sizeDelta[m_axis];
 			else return 0f;
 		}
 	}
@@ -791,54 +791,68 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 			return true
 		*/
 		RectTransform containingElement = GetContainingElement(newSlotRect);
-		Vector2 newSlotRectInitPos = /*RectPos(newSlotRect)*/newSlotRect.position;
+		Vector2 newSlotRectInitPos = newSlotRect.position;
 		Vector2 newSlotRecInitPos = new Vector2(newSlotRect.position.x - newSlotRect.rect.width *.5f, newSlotRect.position.y - newSlotRect.rect.height *.5f);
-		Vector2 newSlotRectFocusedPos = Vector2.zero;
+		
+		Vector2 focusedPos;
+		Vector2 offset;
+		Vector2 normalizedPosOnRect;
 		if(ViewRectTotallyContains(newSlotRect)){
-			DebugUtility.PrintBlue("totally contains, returning false");
+			
 			delta = Vector2.zero;
 			return false;
 		}else{
 			if(!m_isContinuous){
-				newSlotRectFocusedPos = RectPos(containingElement) - RectPos(newSlotRect);
-				SmoothFocus(containingElement, GetNormalizedPosOnRect(containingElement, newSlotRect)[m_axis], 0f);
-				delta = newSlotRectFocusedPos - newSlotRectInitPos;
-				DebugUtility.PrintRed("!m_isContinuous, returning true");
+				
+				if(m_axis == 0)
+					focusedPos = new Vector2(m_normalizedPosOnRect, m_normalizedCursorPos);
+				else
+					focusedPos = new Vector2(m_normalizedCursorPos, m_normalizedPosOnRect);
+				offset = GetNormalizedPosOnRect(containingElement, newSlotRect) - focusedPos;
+				offset.x *= containingElement.rect.width;
+				offset.y *= containingElement.rect.height;
+				SmoothFocus(containingElement, m_normalizedPosOnRect, 0f);
+				
+				delta = offset;
+				
 				return true;
 			}else{
 				if(!m_loop){
 					if(containingElement == m_elements[0]){
-						Vector2 normalizedPosOnRect = GetNormalizedPosOnRect(containingElement, newSlotRect);
+						normalizedPosOnRect = GetNormalizedPosOnRect(containingElement, newSlotRect);
 						float maxFocusTargetNormalizedPos = GetMaxFocusTargetNormalizedPos();
 						if(normalizedPosOnRect[m_axis] > maxFocusTargetNormalizedPos){
-							Vector2 offset = new Vector2(maxFocusTargetNormalizedPos, .5f) - normalizedPosOnRect;
-							newSlotRectFocusedPos = RectPos(newSlotRect);
-							// newSlotRectFocusedPos[m_axis] = offset;
-							SmoothFocus(containingElement, GetMaxFocusTargetNormalizedPos(), 0f);
-							delta = newSlotRectFocusedPos - newSlotRectInitPos;
-							DebugUtility.PrintRed("!loop && firstElement, returning true");
-							return true;
-						}
-					}
-					if(containingElement == m_elements[m_elements.Count -1]){
-						Vector2 normalizedPosOnRect = GetNormalizedPosOnRect(containingElement, newSlotRect);
-						float minFocusTargetNormalizedPos = GetMinFocusTargetNormalizedPos();
-						if(normalizedPosOnRect[m_axis] < minFocusTargetNormalizedPos){
 							
-							Vector2 offset = normalizedPosOnRect - new Vector2(m_axis == 0? minFocusTargetNormalizedPos: normalizedCursorPos, m_axis ==0? normalizedCursorPos:minFocusTargetNormalizedPos)/* - normalizedPosOnRect*/;
-							
-							DebugUtility.PrintRed("normalizedPosOnRect: " + normalizedPosOnRect.ToString());
+							// Vector2 focusedPos;
+							if(m_axis == 0)
+								focusedPos = new Vector2(maxFocusTargetNormalizedPos, m_normalizedCursorPos);
+							else
+								focusedPos = new Vector2(m_normalizedCursorPos, maxFocusTargetNormalizedPos);
+							offset = normalizedPosOnRect - focusedPos;
 							
 							offset.x *= containingElement.rect.width;
 							offset.y *= containingElement.rect.height;
 							
-
+							SmoothFocus(containingElement, maxFocusTargetNormalizedPos, 0f);
 							
-							SmoothFocus(containingElement, minFocusTargetNormalizedPos, 0f);
-							
-							// delta = new Vector2(m_axis ==0? offset.x: 0f, m_axis ==0? 0f: offset.y);
 							delta = offset;
-							DebugUtility.PrintRed("!loop && lastElement, returning true, delta: " + delta.ToString());
+							return true;
+						}
+					}
+					if(containingElement == m_elements[m_elements.Count -1]){
+						normalizedPosOnRect = GetNormalizedPosOnRect(containingElement, newSlotRect);
+						float minFocusTargetNormalizedPos = GetMinFocusTargetNormalizedPos();
+						if(normalizedPosOnRect[m_axis] < minFocusTargetNormalizedPos){
+							
+							focusedPos = new Vector2(m_axis == 0? minFocusTargetNormalizedPos: m_normalizedCursorPos, m_axis ==0? m_normalizedCursorPos:minFocusTargetNormalizedPos);
+							offset = normalizedPosOnRect - focusedPos;
+							
+							offset.x *= containingElement.rect.width;
+							offset.y *= containingElement.rect.height;
+													
+							SmoothFocus(containingElement, minFocusTargetNormalizedPos, 0f);
+								
+							delta = offset;
 							return true;
 						}
 					}
@@ -846,9 +860,19 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 				}
 			}
 
-			newSlotRectFocusedPos = Vector2.zero;
+			
+			normalizedPosOnRect = GetNormalizedPosOnRect(containingElement, newSlotRect);
+			
+			if(m_axis == 0)
+				focusedPos = new Vector2(normalizedPosOnRect.x, m_normalizedCursorPos);
+			else
+				focusedPos = new Vector2(m_normalizedCursorPos, normalizedPosOnRect.y);
+			offset = normalizedPosOnRect - focusedPos;
+			offset.x *= containingElement.rect.width;
+			offset.y *= containingElement.rect.height;
 			SmoothFocus(containingElement, GetNormalizedPosOnRect(containingElement, newSlotRect)[m_axis], 0f);
-			delta = newSlotRectFocusedPos - newSlotRectInitPos;
+			
+			delta = offset;
 			return true;
 		}
 	}
@@ -867,7 +891,6 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 				return m_elements[i];
 			}
 		}
-		DebugUtility.PrintRed("containing element not found");
 		return result;
 	}
 
@@ -875,10 +898,7 @@ public class AxisScroller : UIBehaviour, IInitializePotentialDragHandler, IBegin
 		
 		Rect slotRect = new Rect(newSlotRect.position.x - newSlotRect.rect.width *.5f , newSlotRect.position.y - newSlotRect.rect.height *.5f, newSlotRect.rect.width, newSlotRect.rect.height);
 		Rect viewRect = new Rect(m_rectTrans.position.x - m_rectTrans.rect.width *.5f , m_rectTrans.position.y - m_rectTrans.rect.height *.5f, m_rectTrans.rect.width, m_rectTrans.rect.height);
-		DebugUtility.PrintRed("slotRect: " + slotRect.ToString());
-		DebugUtility.PrintRed("viewRect: " + viewRect.ToString());
 		
-
 		bool ob = false;
 		ob |= slotRect.x + slotRect.width > viewRect.x + viewRect.width;
 		ob |= slotRect.y + slotRect.height > viewRect.y + viewRect.height;
