@@ -58,8 +58,9 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 	
 
 	public void OnPopupFocus(PointerEventData eventData){
-		print(gameObject.name + "'s OnPopupFocus is called");
-		image.color = focusCol;
+		// print(gameObject.name + "'s OnPopupFocus is called");
+		// image.color = focusCol;
+		StartCoroutine(TurnColor(defocusedCol, focusCol));
 		ActivateCanvasGroup();
 		/*
 			if the raycastBlocker is being deactivated, stop the coroutine first
@@ -73,33 +74,47 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 		if(m_raycastBlocker.IsBeingDeactivated()){
 			m_raycastBlocker.StopDeactivation();
 		}
-		transform.SetParent(canvas.transform, true);
+		// transform.SetParent(canvas.transform, true);
 		
 		m_raycastBlocker.Activate(this.transform);
 		
 	}
 
 	public void OnPopupDefocus(PointerEventData eventData){
-		print(gameObject.name + "'s OnPopupDefocus is called");
-		image.color = defocusedCol;
+		// print(gameObject.name + "'s OnPopupDefocus is called");
+		// image.color = defocusedCol;
+		StartCoroutine(TurnColor(focusCol, defocusedCol));
 		DeactivateCanvasGroup();
 		m_canvasGroup.alpha = 1f;
 		
 	}
 
-	public void OnPopupHide(PointerEventData eventData){
-		print(gameObject.name + "'s OnpopupHide is called");
+	public void OnPopupHide(PointerEventData eventData)
+	/*	called when touched outside
+	*/
+	{
+		// print(gameObject.name + "'s OnpopupHide is called");
 		StartCoroutine(Fade(false));
 		
 		m_raycastBlocker.Deactivate();
 	}
 
 	public void OpenPopup(){/*explicitly called from unity event*/
-		print(gameObject.name + "'s OpenPopup is called");
-		customInputModule.AddPopup(this.gameObject);
+		// print(gameObject.name + "'s OpenPopup is called");
+		customInputModule.AddPopup(this.gameObject);//===> OnPopupFocus & OnPopupDefocus
 
 		StartCoroutine(Fade(true));
 
+	}
+	IEnumerator TurnColor(Color from, Color to){
+		float timer = 0f;
+		while(timer <= fadeTime){
+			image.color = Color.Lerp(from, to, timer/fadeTime);
+
+			timer += Time.unscaledDeltaTime;
+			yield return null;
+		}
+		image.color = to;
 	}
 	
 	bool isDoneFading = true;
@@ -122,10 +137,14 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 			if(t >= fadeTime){
 				isDoneFading = true;
 				m_canvasGroup.alpha = targetAlpha;
-				if(fadeIn)
+				if(fadeIn){
+
 					ActivateCanvasGroup();
-				else
+				}
+				else{
 					DeactivateCanvasGroup();
+					// m_raycastBlocker.Deactivate();
+				}
 				yield break;
 			}
 

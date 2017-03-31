@@ -10,26 +10,30 @@ public class RaycastBlocker : MonoBehaviour {
 	RectTransform m_rectTrans;
 	CanvasGroup m_canvasGroup;
 	float m_fadeTime;
+	bool m_initialized = false;
 	public void Initialize(float fadeTime){
-		transform.SetParent(m_canvasTrans);
-		
-		m_rectTrans = GetComponent<RectTransform>();
-		m_rectTrans.anchorMax = Vector2.one;
-		m_rectTrans.anchorMin = Vector2.zero;
-		m_rectTrans.pivot = new Vector2(.5f, .5f);
-		m_rectTrans.sizeDelta = Vector2.one;
+		if(!m_initialized){
+			m_initialized = true;
+			transform.SetParent(m_canvasTrans);
+			
+			m_rectTrans = GetComponent<RectTransform>();
+			m_rectTrans.anchorMax = Vector2.one;
+			m_rectTrans.anchorMin = Vector2.zero;
+			m_rectTrans.pivot = new Vector2(.5f, .5f);
+			m_rectTrans.sizeDelta = Vector2.one;
 
-		m_canvasGroup = GetComponent<CanvasGroup>();
-		m_canvasGroup.alpha = 0f;
-		m_canvasGroup.interactable = false;
-		m_canvasGroup.blocksRaycasts = false;
-		// m_canvasGroup.ignoreParentGroups = true;
-		m_fadeTime = fadeTime;
+			m_canvasGroup = GetComponent<CanvasGroup>();
+			m_canvasGroup.alpha = 0f;
+			m_canvasGroup.interactable = false;
+			m_canvasGroup.blocksRaycasts = false;
+			// m_canvasGroup.ignoreParentGroups = true;
+			m_fadeTime = fadeTime;
 
 
-		m_isActivated = false;
-		m_isBeingDeactivated = false;
-		m_isDeactivatable = true;
+			m_isActivated = false;
+			m_isBeingDeactivated = false;
+			m_isDeactivatable = true;
+		}
 	}
 	
 	void Start () {
@@ -41,6 +45,7 @@ public class RaycastBlocker : MonoBehaviour {
 	}
 
 	public void Deactivate(){
+		// m_isActivated = false;
 		StartCoroutine(InternalDeactivate());
 	}
 	public bool IsBeingDeactivated(){
@@ -51,36 +56,40 @@ public class RaycastBlocker : MonoBehaviour {
 		/*
 			if already activated, just set hierarchy
 		*/
-		if(!m_isActivated){
-
-			m_isActivated = true;
 			m_canvasGroup.blocksRaycasts = true;
-			StartCoroutine(InternalActivate());
-		}
+			StartCoroutine(InternalActivate(popup));
+		// if(!m_isActivated){
+
+			
+		// }
 		
 		SetHierarchy(popup);
 
 	}
 	void SetHierarchy(Transform popup){
 		transform.SetAsLastSibling();
+		if(popup.parent != m_canvasTrans)
+			popup.SetParent(m_canvasTrans, true);
 		popup.SetAsLastSibling();
 	}
-	IEnumerator InternalActivate(){
+	IEnumerator InternalActivate(Transform popup){
 		float timer = 0f;
 		while(true){
 			if(timer > m_fadeTime){
-				CompleteActivation();
+				if(!m_isActivated)
+					CompleteActivation(popup);
 				yield break;
 			}
-
-			m_canvasGroup.alpha = Mathf.Lerp(0f, m_activatedAlpha, timer/m_fadeTime);
+			if(!m_isActivated)
+				m_canvasGroup.alpha = Mathf.Lerp(0f, m_activatedAlpha, timer/m_fadeTime);
 
 			timer += Time.unscaledDeltaTime;
 			yield return null;
 		}
 	}
 
-	void CompleteActivation(){
+	void CompleteActivation(Transform popup){
+		m_isActivated = true;
 		m_canvasGroup.alpha = m_activatedAlpha;
 	}
 
@@ -100,6 +109,7 @@ public class RaycastBlocker : MonoBehaviour {
 			if(!m_isDeactivatable){
 				m_isBeingDeactivated = false;
 				m_isDeactivatable = true;
+				m_canvasGroup.alpha = m_activatedAlpha;
 				yield break;
 			}
 
