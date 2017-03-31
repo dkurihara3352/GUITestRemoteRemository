@@ -3,6 +3,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using MyUtility;
 
 [RequireComponent(typeof(Image), typeof(CanvasGroup))]
 public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPopupHideHandler {
@@ -38,11 +39,12 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 		image = GetComponent<Image>();
 		image.color = focusCol;
 		DeactivateCanvasGroup();
+		m_canvasGroup.alpha = 0f;
 	}
 
 	void DeactivateCanvasGroup(){
+		
 		if(m_canvasGroup != null){
-			m_canvasGroup.alpha = 0f;
 			m_canvasGroup.blocksRaycasts = false;
 			m_canvasGroup.interactable = false;
 		}
@@ -58,8 +60,6 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 	
 
 	public void OnPopupFocus(PointerEventData eventData){
-		// print(gameObject.name + "'s OnPopupFocus is called");
-		// image.color = focusCol;
 		StartCoroutine(TurnColor(defocusedCol, focusCol));
 		ActivateCanvasGroup();
 		/*
@@ -74,15 +74,12 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 		if(m_raycastBlocker.IsBeingDeactivated()){
 			m_raycastBlocker.StopDeactivation();
 		}
-		// transform.SetParent(canvas.transform, true);
 		
 		m_raycastBlocker.Activate(this.transform);
 		
 	}
 
 	public void OnPopupDefocus(PointerEventData eventData){
-		// print(gameObject.name + "'s OnPopupDefocus is called");
-		// image.color = defocusedCol;
 		StartCoroutine(TurnColor(focusCol, defocusedCol));
 		DeactivateCanvasGroup();
 		m_canvasGroup.alpha = 1f;
@@ -93,14 +90,13 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 	/*	called when touched outside
 	*/
 	{
-		// print(gameObject.name + "'s OnpopupHide is called");
+		DeactivateCanvasGroup();
 		StartCoroutine(Fade(false));
 		
 		m_raycastBlocker.Deactivate();
 	}
 
 	public void OpenPopup(){/*explicitly called from unity event*/
-		// print(gameObject.name + "'s OpenPopup is called");
 		customInputModule.AddPopup(this.gameObject);//===> OnPopupFocus & OnPopupDefocus
 
 		StartCoroutine(Fade(true));
@@ -121,11 +117,15 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 	public float fadeTime = .2f;
 	bool isFadable = false;
 	IEnumerator Fade(bool fadeIn){
+		while(!isDoneFading){
+			isFadable =false;
+			yield return null;
+		}
 		float t = 0f;
 		isDoneFading = false;
 		isFadable = true;
-		
-		float curAlpha = fadeIn? 0f: 1f;
+				
+		float curAlpha = m_canvasGroup.alpha;
 		float targetAlpha = fadeIn? 1f: 0f;
 			
 		while(!isDoneFading){
@@ -137,14 +137,6 @@ public class Popup : UIBehaviour, IPopupFocusHandler, IPopupDefocusHandler, IPop
 			if(t >= fadeTime){
 				isDoneFading = true;
 				m_canvasGroup.alpha = targetAlpha;
-				if(fadeIn){
-
-					ActivateCanvasGroup();
-				}
-				else{
-					DeactivateCanvasGroup();
-					// m_raycastBlocker.Deactivate();
-				}
 				yield break;
 			}
 
